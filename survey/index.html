@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>استبيان بحثي - الأخطاء الطبية والذكاء الاصطناعي</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --white: #FFFFFF;
+    --bg: #F5F8FB;
+    --card: #FFFFFF;
+    --blue: #2B7FBF;
+    --blue-light: #E8F4FD;
+    --blue-mid: #5BA4D8;
+    --accent: #1A5F9A;
+    --text: #1E2A38;
+    --text-soft: #5A6A7A;
+    --border: #DDE8F0;
+    --success: #22C55E;
+    --shadow: 0 2px 16px rgba(43,127,191,0.08);
+    --shadow-hover: 0 8px 32px rgba(43,127,191,0.16);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Tajawal', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    direction: rtl;
+  }
+
+  /* Progress Bar */
+  #progress-bar-wrap {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--border);
+    z-index: 1000;
+  }
+  #progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--blue-mid));
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    border-radius: 0 2px 2px 0;
+  }
+
+  /* Header */
+  .hero {
+    background: linear-gradient(135deg, var(--blue) 0%, var(--accent) 100%);
+    color: white;
+    text-align: center;
+    padding: 64px 24px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 240px; height: 240px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: -40px;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  .hero-icon {
+    font-size: 52px;
+    margin-bottom: 16px;
+    display: block;
+  }
+  .hero h1 {
+    font-family: 'Cairo', sans-serif;
+    font-size: clamp(22px, 4vw, 32px);
+    font-weight: 800;
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+  .hero p {
+    font-size: 15px;
+    opacity: 0.88;
+    max-width: 560px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 12px;
+    margin-bottom: 20px;
+  }
+
+  /* Container */
+  .container {
+    max-width: 700px;
+    margin: -28px auto 0;
+    padding: 0 16px 80px;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* Section Card */
+  .section-card {
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    display: none;
+    animation: slideIn 0.4s cubic-bezier(.4,0,.2,1);
+  }
+  .section-card.active { display: block; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    background: var(--blue-light);
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-num {
+    width: 36px; height: 36px;
+    background: var(--blue);
+    color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .section-header h2 {
+    font-family: 'Cairo', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .section-body { padding: 24px 28px; }
+
+  /* Question */
+  .question {
+    margin-bottom: 28px;
+  }
+  .question:last-child { margin-bottom: 0; }
+  .q-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+    line-height: 1.6;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .q-required { color: #e53e3e; font-size: 12px; margin-top: 2px; }
+
+  /* Radio / Checkbox */
+  .options-grid {
+    display: grid;
+    gap: 8px;
+  }
+  .options-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+
+  .opt-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--white);
+    user-select: none;
+  }
+  .opt-item:hover {
+    border-color: var(--blue-mid);
+    background: var(--blue-light);
+  }
+  .opt-item.selected {
+    border-color: var(--blue);
+    background: var(--blue-light);
+  }
+  .opt-item input { display: none; }
+  .opt-dot {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .opt-item.selected .opt-dot {
+    border-color: var(--blue);
+    background: var(--blue);
+  }
+  .opt-dot::after {
+    content: '';
+    width: 6px; height: 6px;
+    background: white;
+    border-radius: 50%;
+    display: none;
+  }
+  .opt-item.selected .opt-dot::after { display: block; }
+
+  /* Checkbox style */
+  .opt-checkbox .opt-dot {
+    border-radius: 4px;
+  }
+  .opt-item.selected .opt-checkbox-check {
+    border-color: var(--blue);
+    background: var(--blue);
+  }
+
+  .opt-text { font-size: 13.5px; color: var(--text); }
+
+  /* Scale */
+  .scale-wrap {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .scale-question-label {
+    font-size: 13.5px;
+    color: var(--text);
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+  .scale-btns {
+    display: flex;
+    gap: 6px;
+  }
+  .scale-btn {
+    flex: 1;
+    aspect-ratio: 1;
+    max-width: 44px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .scale-btn:hover { border-color: var(--blue-mid); color: var(--blue); }
+  .scale-btn.active {
+    border-color: var(--blue);
+    background: var(--blue);
+    color: white;
+  }
+  .scale-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text-soft);
+    margin-top: 5px;
+    padding: 0 2px;
+  }
+
+  /* Textarea */
+  .q-textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    resize: vertical;
+    min-height: 100px;
+    transition: border-color 0.2s;
+    direction: rtl;
+  }
+  .q-textarea:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(43,127,191,0.1);
+  }
+
+  /* Navigation */
+  .nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
+    gap: 12px;
+  }
+  .btn {
+    padding: 12px 28px;
+    border-radius: 10px;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .btn-primary {
+    background: var(--blue);
+    color: white;
+    box-shadow: 0 4px 14px rgba(43,127,191,0.35);
+  }
+  .btn-primary:hover {
+    background: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(43,127,191,0.4);
+  }
+  .btn-secondary {
+    background: var(--bg);
+    color: var(--text-soft);
+    border: 1.5px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--border); }
+
+  .step-info {
+    font-size: 12px;
+    color: var(--text-soft);
+    text-align: center;
+  }
+
+  /* Success Screen */
+  #success-screen {
+    display: none;
+    text-align: center;
+    background: var(--card);
+    border-radius: 16px;
+    padding: 60px 32px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+  .success-icon {
+    width: 80px; height: 80px;
+    background: linear-gradient(135deg, #22C55E, #16A34A);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 36px;
+    box-shadow: 0 8px 24px rgba(34,197,94,0.3);
+  }
+  #success-screen h2 {
+    font-family: 'Cairo', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+  #success-screen p {
+    color: var(--text-soft);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* Error message */
+  .error-msg {
+    color: #e53e3e;
+    font-size: 12px;
+    margin-top: 6px;
+    display: none;
+  }
+
+  @media (max-width: 480px) {
+    .section-body { padding: 20px 16px; }
+    .options-grid.cols-2 { grid-template-columns: 1fr; }
+    .scale-btns { gap: 4px; }
+    .scale-btn { font-size: 12px; }
+    .hero { padding: 48px 16px 64px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar-wrap"><div id="progress-fill" style="width:16.6%"></div></div>
+
+<div class="hero">
+  <span class="hero-badge">🔬 بحث علمي أكاديمي</span>
+  <span class="hero-icon">🏥</span>
+  <h1>الأخطاء الطبية ودور الذكاء الاصطناعي<br>في تحسين التشخيص</h1>
+  <p>جميع البيانات سرية وتُستخدم لأغراض البحث العلمي فقط. مشاركتك تساهم في تطوير الرعاية الصحية.</p>
+</div>
+
+<div class="container">
+
+  <!-- Section 1 -->
+  <div class="section-card active" id="sec1">
+    <div class="section-header">
+      <div class="section-num">١</div>
+      <h2>البيانات الديموغرافية</h2>
+    </div>
+    <div class="section-body">
+
+      <div class="question">
+        <div class="q-label">العمر <span class="q-required">*</span></div>
+        <div class="options-grid cols-2">
+          <label class="opt-item" onclick="select(this,'age_group','less_18')">
+            <span class="opt-dot"></span><span class="opt-text">أقل من 18</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'age_group','18_24')">
+            <span class="opt-dot"></span><span class="opt-text">18 – 24</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'age_group','25_34')">
+            <span class="opt-dot"></span><span class="opt-text">25 – 34</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'age_group','35_44')">
+            <span class="opt-dot"></span><span class="opt-text">35 – 44</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'age_group','45_54')">
+            <span class="opt-dot"></span><span class="opt-text">45 – 54</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'age_group','55_plus')">
+            <span class="opt-dot"></span><span class="opt-text">55 فأكثر</span>
+          </label>
+        </div>
+        <div class="error-msg" id="err-age_group">الرجاء اختيار الفئة العمرية</div>
+      </div>
+
+      <div class="question">
+        <div class="q-label">الجنس <span class="q-required">*</span></div>
+        <div class="options-grid cols-2">
+          <label class="opt-item" onclick="select(this,'gender','male')">
+            <span class="opt-dot"></span><span class="opt-text">ذكر</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'gender','female')">
+            <span class="opt-dot"></span><span class="opt-text">أنثى</span>
+          </label>
+        </div>
+        <div class="error-msg" id="err-gender">الرجاء اختيار الجنس</div>
+      </div>
+
+      <div class="question">
+        <div class="q-label">المستوى التعليمي <span class="q-required">*</span></div>
+        <div class="options-grid cols-2">
+          <label class="opt-item" onclick="select(this,'education','basic')">
+            <span class="opt-dot"></span><span class="opt-text">أساسي</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'education','secondary')">
+            <span class="opt-dot"></span><span class="opt-text">ثانوي</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'education','diploma')">
+            <span class="opt-dot"></span><span class="opt-text">دبلوم</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'education','bachelor')">
+            <span class="opt-dot"></span><span class="opt-text">بكالوريوس</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'education','postgrad')">
+            <span class="opt-dot"></span><span class="opt-text">دراسات عليا</span>
+          </label>
+        </div>
+        <div class="error-msg" id="err-education">الرجاء اختيار المستوى التعليمي</div>
+      </div>
+
+      <div class="question">
+        <div class="q-label">الحالة الصحية العامة <span class="q-required">*</span></div>
+        <div class="options-grid cols-2">
+          <label class="opt-item" onclick="select(this,'health_status','excellent')">
+            <span class="opt-dot"></span><span class="opt-text">ممتازة</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'health_status','good')">
+            <span class="opt-dot"></span><span class="opt-text">جيدة</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'health_status','average')">
+            <span class="opt-dot"></span><span class="opt-text">متوسطة</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'health_status','weak')">
+            <span class="opt-dot"></span><span class="opt-text">ضعيفة</span>
+          </label>
+        </div>
+        <div class="error-msg" id="err-health_status">الرجاء اختيار الحالة الصحية</div>
+      </div>
+
+      <div class="nav-row">
+        <div></div>
+        <div class="step-info">القسم 1 من 6</div>
+        <button class="btn btn-primary" onclick="nextSection(1)">التالي ←</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2 -->
+  <div class="section-card" id="sec2">
+    <div class="section-header">
+      <div class="section-num">٢</div>
+      <h2>تجربة الرعاية الصحية</h2>
+    </div>
+    <div class="section-body">
+
+      <div class="question">
+        <div class="q-label">كم مرة تزور الطبيب سنوياً؟ <span class="q-required">*</span></div>
+        <div class="options-grid">
+          <label class="opt-item" onclick="select(this,'doctor_visits','once_or_less')">
+            <span class="opt-dot"></span><span class="opt-text">مرة أو أقل</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'doctor_visits','2_5')">
+            <span class="opt-dot"></span><span class="opt-text">2 – 5 مرات</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'doctor_visits','more_5')">
+            <span class="opt-dot"></span><span class="opt-text">أكثر من 5 مرات</span>
+          </label>
+        </div>
+        <div class="error-msg" id="err-doctor_visits">الرجاء الاختيار</div>
+      </div>
+
+      <div class="question">
+        <div class="q-label">هل سبق أن تلقيت تشخيصًا طبيًا تبيّن لاحقًا أنه غير دقيق؟ <span class="q-required">*</span></div>
+        <div class="options-grid cols-2">
+          <label class="opt-item" onclick="select(this,'wrong_diagnosis','yes_confirmed')">
+            <span class="opt-dot"></span><span class="opt-text">نعم، بشكل مؤكد</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'wrong_diagnosis','i_think')">
+            <span class="opt-dot"></span><span class="opt-text">أعتقد ذلك</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'wrong_diagnosis','no')">
+            <span class="opt-dot"></span><span class="opt-text">لا</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'wrong_diagnosis','dont_know')">
+            <span class="opt-dot"></span><span class="opt-text">لا أعرف</span>
+          </label>
+        </div>
+        <div class="error-msg" id="err-wrong_diagnosis">الرجاء الاختيار</div>
+      </div>
+
+      <div class="question">
+        <div class="q-label">في حال وجود تشخيص غير دقيق، ما نوع المشكلة الناتجة؟ <small style="color:var(--text-soft)">(يمكن اختيار أكثر من خيار)</small></div>
+        <div class="options-grid">
+          <label class="opt-item opt-checkbox" onclick="toggleCheck(this,'diagnosis_problems','delayed_treatment')">
+            <span class="opt-dot opt-checkbox-check"></span><span class="opt-text">تأخر العلاج</span>
+          </label>
+          <label class="opt-item opt-checkbox" onclick="toggleCheck(this,'diagnosis_problems','worsening')">
+            <span class="opt-dot opt-checkbox-check"></span><span class="opt-text">تفاقم الحالة</span>
+          </label>
+          <label class="opt-item opt-checkbox" onclick="toggleCheck(this,'diagnosis_problems','wrong_treatment')">
+            <span class="opt-dot opt-checkbox-check"></span><span class="opt-text">علاج غير مناسب</span>
+          </label>
+          <label class="opt-item opt-checkbox" onclick="toggleCheck(this,'diagnosis_problems','repeated_tests')">
+            <span class="opt-dot opt-checkbox-check"></span><span class="opt-text">إعادة فحوصات متعددة</span>
+          </label>
+          <label class="opt-item opt-checkbox" onclick="toggleCheck(this,'diagnosis_problems','no_impact')">
+            <span class="opt-dot opt-checkbox-check"></span><span class="opt-text">لا يوجد تأثير واضح</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="question">
+        <div class="q-label">أين حدث الخطأ غالبًا حسب رأيك؟ <span class="q-required">*</span></div>
+        <div class="options-grid cols-2">
+          <label class="opt-item" onclick="select(this,'error_location','private_clinic')">
+            <span class="opt-dot"></span><span class="opt-text">عيادة خاصة</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'error_location','gov_hospital')">
+            <span class="opt-dot"></span><span class="opt-text">مستشفى حكومي</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'error_location','emergency')">
+            <span class="opt-dot"></span><span class="opt-text">طوارئ</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'error_location','lab')">
+            <span class="opt-dot"></span><span class="opt-text">مختبر</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'error_location','unknown')">
+            <span class="opt-dot"></span><span class="opt-text">غير معروف</span>
+          </label>
+        </div>
+        <div class="error-msg" id="err-error_location">الرجاء الاختيار</div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="prevSection(2)">→ السابق</button>
+        <div class="step-info">القسم 2 من 6</div>
+        <button class="btn btn-primary" onclick="nextSection(2)">التالي ←</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3 -->
+  <div class="section-card" id="sec3">
+    <div class="section-header">
+      <div class="section-num">٣</div>
+      <h2>أسباب الأخطاء الطبية</h2>
+    </div>
+    <div class="section-body">
+      <p style="font-size:13px;color:var(--text-soft);margin-bottom:20px;">قيّم كل عامل من 1 إلى 5 &nbsp;|&nbsp; 1 = غير مهم إطلاقًا &nbsp;·&nbsp; 5 = مهم جداً</p>
+
+      <div id="scales-sec3">
+        <!-- scales injected by JS -->
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="prevSection(3)">→ السابق</button>
+        <div class="step-info">القسم 3 من 6</div>
+        <button class="btn btn-primary" onclick="nextSection(3)">التالي ←</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 4 -->
+  <div class="section-card" id="sec4">
+    <div class="section-header">
+      <div class="section-num">٤</div>
+      <h2>الذكاء الاصطناعي في الطب</h2>
+    </div>
+    <div class="section-body">
+
+      <div class="question">
+        <div class="q-label">مدى معرفتك بالذكاء الاصطناعي في المجال الطبي <span class="q-required">*</span></div>
+        <div class="options-grid">
+          <label class="opt-item" onclick="select(this,'ai_knowledge','none')">
+            <span class="opt-dot"></span><span class="opt-text">لا أعرف عنه شيئًا</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'ai_knowledge','basic')">
+            <span class="opt-dot"></span><span class="opt-text">معرفة بسيطة</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'ai_knowledge','medium')">
+            <span class="opt-dot"></span><span class="opt-text">معرفة متوسطة</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'ai_knowledge','good')">
+            <span class="opt-dot"></span><span class="opt-text">معرفة جيدة</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'ai_knowledge','advanced')">
+            <span class="opt-dot"></span><span class="opt-text">معرفة متقدمة</span>
+          </label>
+        </div>
+        <div class="error-msg" id="err-ai_knowledge">الرجاء الاختيار</div>
+      </div>
+
+      <p style="font-size:13px;color:var(--text-soft);margin-bottom:16px;">وافق أو اعترض على العبارات التالية: &nbsp;1 = أعارض بشدة &nbsp;·&nbsp; 5 = أوافق بشدة</p>
+      <div id="scales-sec4"></div>
+
+      <div class="question" style="margin-top:20px">
+        <div class="q-label">برأيك، أين يمكن أن يكون الذكاء الاصطناعي أكثر فائدة؟ <span class="q-required">*</span></div>
+        <div class="options-grid">
+          <label class="opt-item" onclick="select(this,'ai_best_use','early_diagnosis')">
+            <span class="opt-dot"></span><span class="opt-text">التشخيص المبكر</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'ai_best_use','image_analysis')">
+            <span class="opt-dot"></span><span class="opt-text">تحليل الصور الطبية (أشعة، MRI)</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'ai_best_use','prescriptions')">
+            <span class="opt-dot"></span><span class="opt-text">وصف العلاج</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'ai_best_use','chronic_followup')">
+            <span class="opt-dot"></span><span class="opt-text">متابعة الحالات المزمنة</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'ai_best_use','hospital_mgmt')">
+            <span class="opt-dot"></span><span class="opt-text">إدارة المستشفيات</span>
+          </label>
+        </div>
+        <div class="error-msg" id="err-ai_best_use">الرجاء الاختيار</div>
+      </div>
+
+      <div class="question">
+        <div class="q-label">ما أكبر خطر محتمل للذكاء الاصطناعي في الطب؟ <span class="q-required">*</span></div>
+        <div class="options-grid">
+          <label class="opt-item" onclick="select(this,'ai_biggest_risk','privacy')">
+            <span class="opt-dot"></span><span class="opt-text">فقدان الخصوصية</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'ai_biggest_risk','algorithm_errors')">
+            <span class="opt-dot"></span><span class="opt-text">أخطاء خوارزمية</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'ai_biggest_risk','over_reliance')">
+            <span class="opt-dot"></span><span class="opt-text">الاعتماد الزائد عليه</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'ai_biggest_risk','replace_doctors')">
+            <span class="opt-dot"></span><span class="opt-text">استبدال الأطباء</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'ai_biggest_risk','complex_cases')">
+            <span class="opt-dot"></span><span class="opt-text">عدم فهم الحالات المعقدة</span>
+          </label>
+        </div>
+        <div class="error-msg" id="err-ai_biggest_risk">الرجاء الاختيار</div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="prevSection(4)">→ السابق</button>
+        <div class="step-info">القسم 4 من 6</div>
+        <button class="btn btn-primary" onclick="nextSection(4)">التالي ←</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 5 -->
+  <div class="section-card" id="sec5">
+    <div class="section-header">
+      <div class="section-num">٥</div>
+      <h2>الثقة والاعتماد</h2>
+    </div>
+    <div class="section-body">
+
+      <div class="question">
+        <div class="q-label">مدى ثقتك بالتشخيص الطبي الحالي بدون ذكاء اصطناعي <span class="q-required">*</span></div>
+        <div class="scale-wrap">
+          <div class="scale-btns" id="scale-trust_without_ai">
+            <button class="scale-btn" onclick="setScale('trust_without_ai',1,this)">1</button>
+            <button class="scale-btn" onclick="setScale('trust_without_ai',2,this)">2</button>
+            <button class="scale-btn" onclick="setScale('trust_without_ai',3,this)">3</button>
+            <button class="scale-btn" onclick="setScale('trust_without_ai',4,this)">4</button>
+            <button class="scale-btn" onclick="setScale('trust_without_ai',5,this)">5</button>
+          </div>
+          <div class="scale-labels"><span>لا أثق</span><span>أثق جداً</span></div>
+        </div>
+        <div class="error-msg" id="err-trust_without_ai">الرجاء التقييم</div>
+      </div>
+
+      <div class="question">
+        <div class="q-label">مدى ثقتك بالتشخيص إذا كان مدعومًا بالذكاء الاصطناعي <span class="q-required">*</span></div>
+        <div class="scale-wrap">
+          <div class="scale-btns" id="scale-trust_with_ai">
+            <button class="scale-btn" onclick="setScale('trust_with_ai',1,this)">1</button>
+            <button class="scale-btn" onclick="setScale('trust_with_ai',2,this)">2</button>
+            <button class="scale-btn" onclick="setScale('trust_with_ai',3,this)">3</button>
+            <button class="scale-btn" onclick="setScale('trust_with_ai',4,this)">4</button>
+            <button class="scale-btn" onclick="setScale('trust_with_ai',5,this)">5</button>
+          </div>
+          <div class="scale-labels"><span>لا أثق</span><span>أثق جداً</span></div>
+        </div>
+        <div class="error-msg" id="err-trust_with_ai">الرجاء التقييم</div>
+      </div>
+
+      <div class="question">
+        <div class="q-label">هل تقبل أن يكون للذكاء الاصطناعي دور رئيسي في التشخيص مستقبلاً؟ <span class="q-required">*</span></div>
+        <div class="options-grid">
+          <label class="opt-item" onclick="select(this,'ai_role_future','yes')">
+            <span class="opt-dot"></span><span class="opt-text">نعم</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'ai_role_future','yes_with_supervision')">
+            <span class="opt-dot"></span><span class="opt-text">نعم ولكن مع إشراف طبي</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'ai_role_future','no')">
+            <span class="opt-dot"></span><span class="opt-text">لا</span>
+          </label>
+          <label class="opt-item" onclick="select(this,'ai_role_future','unsure')">
+            <span class="opt-dot"></span><span class="opt-text">غير متأكد</span>
+          </label>
+        </div>
+        <div class="error-msg" id="err-ai_role_future">الرجاء الاختيار</div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="prevSection(5)">→ السابق</button>
+        <div class="step-info">القسم 5 من 6</div>
+        <button class="btn btn-primary" onclick="nextSection(5)">التالي ←</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 6 -->
+  <div class="section-card" id="sec6">
+    <div class="section-header">
+      <div class="section-num">٦</div>
+      <h2>تجارب شخصية وآراء</h2>
+    </div>
+    <div class="section-body">
+
+      <div class="question">
+        <div class="q-label">صف أي تجربة شخصية أو مع شخص تعرفه تتعلق بخطأ طبي</div>
+        <textarea class="q-textarea" id="personal_experience" placeholder="اكتب تجربتك هنا..." rows="4"></textarea>
+      </div>
+
+      <div class="question">
+        <div class="q-label">كيف تعتقد أن الأخطاء الطبية يمكن تقليلها عمليًا؟</div>
+        <textarea class="q-textarea" id="error_reduction_opinion" placeholder="رأيك واقتراحاتك..." rows="4"></textarea>
+      </div>
+
+      <div class="question">
+        <div class="q-label">ما رأيك النهائي في دمج الذكاء الاصطناعي في الطب؟</div>
+        <textarea class="q-textarea" id="final_ai_opinion" placeholder="رأيك النهائي..." rows="4"></textarea>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="prevSection(6)">→ السابق</button>
+        <div class="step-info">القسم 6 من 6</div>
+        <button class="btn btn-primary" id="submit-btn" onclick="submitSurvey()">
+          <span id="submit-text">إرسال الاستبيان ✓</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success -->
+  <div id="success-screen">
+    <div class="success-icon">✓</div>
+    <h2>شكراً لمشاركتك!</h2>
+    <p>تم تسجيل إجاباتك بنجاح.<br>مساهمتك تُعزز أبحاث تحسين جودة الرعاية الصحية.</p>
+    <br>
+    <p style="font-size:13px;color:var(--blue)">💙 شكراً على وقتك وتعاونك</p>
+  </div>
+
+</div>
+
+<script>
+const SUPABASE_URL = 'https://xsnnkdkyggmyctlzlhxf.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhzbm5rZGt5Z2dteWN0bHpsaHhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMzE2OTIsImV4cCI6MjA5NzcwNzY5Mn0.OFwvhvxdeMiOWXfgnstySMuvd0Akafx6extfC8El25g';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// Data store
+const data = {
+  age_group: null, gender: null, education: null, health_status: null,
+  doctor_visits: null, wrong_diagnosis: null, diagnosis_problems: [], error_location: null,
+  cause_workload: null, cause_equipment: null, cause_experience: null,
+  cause_time: null, cause_patient_description: null, cause_similar_symptoms: null, cause_lab_errors: null,
+  ai_knowledge: null, ai_improves_diagnosis: null, ai_reduces_errors: null,
+  ai_needs_supervision: null, ai_more_accurate: null, ai_ethical_concerns: null,
+  ai_best_use: null, ai_biggest_risk: null,
+  trust_without_ai: null, trust_with_ai: null, ai_role_future: null,
+  personal_experience: '', error_reduction_opinion: '', final_ai_opinion: ''
+};
+
+// Build scale rows
+const sec3Scales = [
+  {key:'cause_workload', label:'ضغط العمل على الأطباء'},
+  {key:'cause_equipment', label:'نقص الأجهزة الطبية'},
+  {key:'cause_experience', label:'نقص خبرة الطبيب'},
+  {key:'cause_time', label:'قلة الوقت المخصص للمريض'},
+  {key:'cause_patient_description', label:'سوء وصف الأعراض من المريض'},
+  {key:'cause_similar_symptoms', label:'تشابه الأعراض بين الأمراض'},
+  {key:'cause_lab_errors', label:'أخطاء مخبرية أو في التحاليل'},
+];
+const sec4Scales = [
+  {key:'ai_improves_diagnosis', label:'الذكاء الاصطناعي يمكن أن يساعد في تحسين التشخيص الطبي'},
+  {key:'ai_reduces_errors', label:'الذكاء الاصطناعي يمكن أن يقلل من الأخطاء البشرية'},
+  {key:'ai_needs_supervision', label:'لا يمكن الاعتماد على الذكاء الاصطناعي دون إشراف طبيب'},
+  {key:'ai_more_accurate', label:'الذكاء الاصطناعي قد يكون أكثر دقة في بعض الحالات من الطبيب'},
+  {key:'ai_ethical_concerns', label:'استخدام الذكاء الاصطناعي في الطب يثير مخاوف أخلاقية'},
+];
+
+function buildScales(containerId, scales) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = scales.map(s => `
+    <div class="scale-wrap">
+      <div class="scale-question-label">${s.label}</div>
+      <div class="scale-btns" id="scale-${s.key}">
+        ${[1,2,3,4,5].map(n => `<button class="scale-btn" onclick="setScale('${s.key}',${n},this)">${n}</button>`).join('')}
+      </div>
+      <div class="scale-labels"><span style="font-size:10px">غير مهم / أعارض بشدة</span><span style="font-size:10px">مهم جداً / أوافق بشدة</span></div>
+    </div>
+  `).join('');
+}
+
+buildScales('scales-sec3', sec3Scales);
+buildScales('scales-sec4', sec4Scales);
+
+// Radio select
+window.select = function(el, key, val) {
+  document.querySelectorAll(`[onclick*="select(this,'${key}'"]`).forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  data[key] = val;
+  const err = document.getElementById('err-'+key);
+  if (err) err.style.display = 'none';
+};
+
+// Checkbox toggle
+window.toggleCheck = function(el, key, val) {
+  el.classList.toggle('selected');
+  if (el.classList.contains('selected')) {
+    if (!data[key].includes(val)) data[key].push(val);
+  } else {
+    data[key] = data[key].filter(v => v !== val);
+  }
+};
+
+// Scale
+window.setScale = function(key, val, btn) {
+  document.querySelectorAll(`#scale-${key} .scale-btn`).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  data[key] = val;
+  const err = document.getElementById('err-'+key);
+  if (err) err.style.display = 'none';
+};
+
+// Section navigation
+const totalSections = 6;
+
+function updateProgress(sec) {
+  document.getElementById('progress-fill').style.width = (sec / totalSections * 100) + '%';
+}
+
+window.nextSection = function(current) {
+  if (!validateSection(current)) return;
+  document.getElementById('sec'+current).classList.remove('active');
+  document.getElementById('sec'+(current+1)).classList.add('active');
+  updateProgress(current+1);
+  window.scrollTo({top:0, behavior:'smooth'});
+};
+
+window.prevSection = function(current) {
+  document.getElementById('sec'+current).classList.remove('active');
+  document.getElementById('sec'+(current-1)).classList.add('active');
+  updateProgress(current-1);
+  window.scrollTo({top:0, behavior:'smooth'});
+};
+
+function validateSection(sec) {
+  let ok = true;
+  const required = {
+    1: ['age_group','gender','education','health_status'],
+    2: ['doctor_visits','wrong_diagnosis','error_location'],
+    3: [...sec3Scales.map(s=>s.key)],
+    4: ['ai_knowledge',...sec4Scales.map(s=>s.key),'ai_best_use','ai_biggest_risk'],
+    5: ['trust_without_ai','trust_with_ai','ai_role_future'],
+    6: []
+  };
+  (required[sec]||[]).forEach(key => {
+    if (!data[key]) {
+      const err = document.getElementById('err-'+key);
+      if (err) err.style.display = 'block';
+      ok = false;
+    }
+  });
+  if (!ok) {
+    const firstErr = document.querySelector('.error-msg[style*="block"]');
+    if (firstErr) firstErr.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+  return ok;
+}
+
+// Submit
+window.submitSurvey = async function() {
+  data.personal_experience = document.getElementById('personal_experience').value;
+  data.error_reduction_opinion = document.getElementById('error_reduction_opinion').value;
+  data.final_ai_opinion = document.getElementById('final_ai_opinion').value;
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  document.getElementById('submit-text').textContent = '⏳ جاري الإرسال...';
+
+  // First, try to create table via RPC if it doesn't exist
+  const payload = {
+    age_group: data.age_group,
+    gender: data.gender,
+    education: data.education,
+    health_status: data.health_status,
+    doctor_visits: data.doctor_visits,
+    wrong_diagnosis: data.wrong_diagnosis,
+    diagnosis_problems: data.diagnosis_problems,
+    error_location: data.error_location,
+    cause_workload: data.cause_workload,
+    cause_equipment: data.cause_equipment,
+    cause_experience: data.cause_experience,
+    cause_time: data.cause_time,
+    cause_patient_description: data.cause_patient_description,
+    cause_similar_symptoms: data.cause_similar_symptoms,
+    cause_lab_errors: data.cause_lab_errors,
+    ai_knowledge: data.ai_knowledge,
+    ai_improves_diagnosis: data.ai_improves_diagnosis,
+    ai_reduces_errors: data.ai_reduces_errors,
+    ai_needs_supervision: data.ai_needs_supervision,
+    ai_more_accurate: data.ai_more_accurate,
+    ai_ethical_concerns: data.ai_ethical_concerns,
+    ai_best_use: data.ai_best_use,
+    ai_biggest_risk: data.ai_biggest_risk,
+    trust_without_ai: data.trust_without_ai,
+    trust_with_ai: data.trust_with_ai,
+    ai_role_future: data.ai_role_future,
+    personal_experience: data.personal_experience,
+    error_reduction_opinion: data.error_reduction_opinion,
+    final_ai_opinion: data.final_ai_opinion
+  };
+
+  const { error } = await sb.from('survey_responses').insert([payload]);
+
+  if (error) {
+    alert('حدث خطأ أثناء الإرسال. تأكد من إعداد قاعدة البيانات:\n' + error.message);
+    btn.disabled = false;
+    document.getElementById('submit-text').textContent = 'إرسال الاستبيان ✓';
+    return;
+  }
+
+  // Success
+  document.getElementById('sec6').classList.remove('active');
+  document.getElementById('success-screen').style.display = 'block';
+  document.getElementById('progress-fill').style.width = '100%';
+  window.scrollTo({top:0, behavior:'smooth'});
+};
+</script>
+</body>
+</html>

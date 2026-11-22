@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>نظام السيرفو الذكي</title>
+<style>
+:root {
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+}
+  --teal-900: #0d2b2b;
+  --teal-800: #0e3d3a;
+  --teal-700: #0f5b56;
+  --teal-600: #15847c;
+  --teal-500: #1aa89e;
+  --teal-400: #22c9be;
+  --teal-100: #e3f3f1;
+  --teal-50:  #f0faf9;
+  --ink:      #16242b;
+  --ink-soft: #5b6b72;
+  --paper:    #ffffff;
+  --bg:       #eef3f3;
+  --line:     #d8e4e3;
+  --shadow:   0 10px 30px -12px rgba(13,43,43,.18);
+  --radius-lg: 22px;
+  --radius-md: 16px;
+  --radius-sm: 10px;
+  --font: 'Segoe UI', Tahoma, Arial, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  padding: 1.5rem 1rem 3rem;
+}
+
+/* ── Layout ── */
+.page { max-width: 900px; margin: 0 auto; }
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: .75rem;
+}
+
+.brand { display: flex; flex-direction: column; }
+.brand-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--teal-900);
+  letter-spacing: -.3px;
+}
+.brand-sub { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+
+.conn-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 40px;
+  padding: 6px 10px 6px 14px;
+}
+.conn-row input {
+  border: none; outline: none;
+  font-size: 13px; font-family: monospace;
+  color: var(--ink); background: transparent; width: 120px;
+}
+.conn-row input.port-in { width: 52px; }
+.sep { color: var(--line); font-size: 18px; }
+.dot-status {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: #f59e0b; flex-shrink: 0;
+  transition: background .3s;
+}
+.dot-status.connected  { background: #22c55e; }
+.dot-status.error      { background: #ef4444; }
+.btn-connect {
+  background: var(--teal-600); color: #fff;
+  border: none; border-radius: 20px;
+  padding: 5px 14px; font-size: 12px; cursor: pointer;
+  transition: background .2s;
+}
+.btn-connect:hover { background: var(--teal-700); }
+
+/* ── Grid ── */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+@media(max-width:640px) { .grid-2 { grid-template-columns: 1fr; } }
+
+/* ── Cards ── */
+.card {
+  background: var(--paper);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  padding: 1.4rem 1.4rem 1.2rem;
+}
+.card-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--ink-soft);
+  margin-bottom: .9rem;
+}
+
+/* ── Servo Visual ── */
+.servo-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.servo-wrap svg { width: 100%; max-width: 220px; }
+.angle-big {
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--teal-900);
+  line-height: 1;
+  letter-spacing: -2px;
+  margin: .5rem 0 0;
+}
+.angle-unit { font-size: 22px; color: var(--ink-soft); font-weight: 400; }
+.trigger-pill {
+  margin-top: 6px;
+  font-size: 12px;
+  background: var(--teal-100);
+  color: var(--teal-700);
+  border-radius: 20px;
+  padding: 3px 12px;
+  min-height: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+.trigger-pill.none { color: var(--ink-soft); background: #f0f0f0; font-weight: 400; }
+
+/* Slider */
+.slider-wrap { padding: .5rem 0 0; }
+input[type=range] {
+  width: 100%; -webkit-appearance: none;
+  height: 5px; background: var(--teal-100);
+  border-radius: 3px; outline: none; cursor: pointer;
+  margin: .8rem 0 .4rem;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--teal-600);
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(15,91,86,.3);
+  cursor: pointer;
+}
+.range-labels {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: var(--ink-soft);
+}
+
+/* Presets */
+.presets {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  margin-top: 1rem;
+}
+.presets button {
+  flex: 1; min-width: 44px;
+  padding: 7px 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: 12px; font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all .15s;
+}
+.presets button:hover {
+  background: var(--teal-100);
+  color: var(--teal-700);
+  border-color: var(--teal-400);
+}
+.presets button.active {
+  background: var(--teal-600);
+  color: #fff;
+  border-color: var(--teal-600);
+}
+
+/* ── Mode Toggle ── */
+.mode-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.mode-info { flex: 1; }
+.mode-name {
+  font-size: 16px; font-weight: 700;
+  color: var(--teal-900);
+}
+.mode-desc { font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
+
+/* Toggle switch */
+.toggle {
+  position: relative; width: 52px; height: 28px; flex-shrink: 0;
+}
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-track {
+  position: absolute; inset: 0;
+  background: var(--line);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background .25s;
+}
+.toggle input:checked + .toggle-track { background: var(--teal-500); }
+.toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 3px; right: 3px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,.15);
+  transition: transform .25s;
+}
+.toggle input:checked + .toggle-track::after { transform: translateX(-24px); }
+
+/* ── Sensors ── */
+.sensor-list { display: flex; flex-direction: column; gap: .75rem; }
+.sensor-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--line);
+  background: var(--teal-50);
+  transition: border-color .2s, background .2s;
+}
+.sensor-row.triggered {
+  border-color: var(--teal-500);
+  background: var(--teal-100);
+}
+.sensor-row.disabled {
+  opacity: .45;
+  filter: grayscale(1);
+  background: #f5f5f5;
+}
+.sensor-icon { font-size: 20px; flex-shrink: 0; }
+.sensor-body { flex: 1; min-width: 0; }
+.sensor-name { font-size: 13px; font-weight: 700; color: var(--ink); }
+.sensor-meta { font-size: 11px; color: var(--ink-soft); }
+.sensor-dist {
+  font-size: 18px; font-weight: 700;
+  color: var(--teal-700);
+  min-width: 64px; text-align: left;
+}
+.sensor-dist.warn { color: #dc2626; }
+.sensor-dist.null { color: var(--line); font-size: 14px; }
+
+/* ── Threshold / Speed ── */
+.threshold-row {
+  display: flex; align-items: center; gap: 10px; margin-top: .5rem;
+}
+.threshold-val {
+  font-size: 28px; font-weight: 700; color: var(--teal-900);
+  min-width: 60px; text-align: center; line-height: 1;
+}
+.threshold-val span { font-size: 14px; font-weight: 400; color: var(--ink-soft); }
+.thresh-btn {
+  width: 34px; height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  font-size: 20px; line-height: 1;
+  cursor: pointer;
+  color: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+}
+.thresh-btn:hover { background: var(--teal-100); border-color: var(--teal-400); }
+.thresh-input-wrap {
+  flex: 1;
+  position: relative;
+}
+.thresh-input-wrap input[type=range] {
+  margin: 0;
+}
+.speed-hint {
+  display: flex; justify-content: space-between;
+  font-size: 10.5px; color: var(--ink-soft); margin-top: 2px;
+}
+
+/* ── Log ── */
+.log-box {
+  background: var(--teal-900);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  max-height: 120px;
+  overflow-y: auto;
+  font-size: 11.5px;
+  font-family: 'Courier New', monospace;
+  color: #8bbfba;
+}
+.log-box div { margin-bottom: 3px; line-height: 1.5; }
+.log-ok   { color: #4ade80; }
+.log-err  { color: #f87171; }
+.log-info { color: #60a5fa; }
+.log-warn { color: #fbbf24; }
+
+/* ── Misc ── */
+.divider {
+  height: 1px;
+  background: var(--line);
+  margin: 1rem 0;
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-title">🎛 نظام السيرفو الذكي</div>
+      <div class="brand-sub">WebSocket → Raspberry Pi · GPIO 13 · 3 حساسات</div>
+    </div>
+    <div class="conn-row">
+      <span class="dot-status" id="dot"></span>
+      <input type="text"   id="ip-in"   value="192.168.10.16" placeholder="IP" />
+      <span class="sep">:</span>
+      <input type="number" id="port-in" value="9999" class="port-in" />
+      <button class="btn-connect" onclick="reconnect()">اتصال</button>
+    </div>
+  </div>
+
+  <!-- Row 1: Servo + Mode -->
+  <div class="grid-2" style="margin-bottom:1rem">
+
+    <!-- Servo Visual Card -->
+    <div class="card">
+      <div class="card-label">السيرفو · بن 13</div>
+      <div class="servo-wrap">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <!-- Track ring -->
+          <circle cx="100" cy="100" r="72" fill="none" stroke="var(--teal-100)" stroke-width="10"/>
+          <!-- Arc progress -->
+          <path id="arc-path" d="" fill="none" stroke="var(--teal-500)" stroke-width="10" stroke-linecap="round"/>
+          <!-- Center hub -->
+          <circle cx="100" cy="100" r="22" fill="var(--bg)" stroke="var(--line)" stroke-ةخاشةةشي شلاعمهلايثا هي مخ0ءىبىمبمكينطميبنمكيهخةميصمية ةنبةن
+          تبمينةوس نثوةمبتميبتهثوويمبمسمسو رنةث
+          سنميةورم مبةسيمنبتنلمنتنلينلننيمينمعلى فكرة انا احلى من علي سليم بس فش حد بعترف اخوي انا انيق انت لاwidth="1.5"/>
+          <!-- Arm -->
+          <line id="servo-arm" x1="100" y1="100" x2="100" y2="30"
+            stroke="var(--teal-900)" stroke-width="4" stroke-linecap="round"/>
+          <!-- Center pin -->
+          <circle cx="100" cy="100" r="6" fill="var(--teal-700)"/>
+          <!-- Labels -->
+          <text x="100" y="192" text-anchor="middle" font-size="11" fill="var(--ink-soft)">0°</text>
+          <text x="12"  y="105" text-anchor="start"  font-size="11" fill="var(--ink-soft)">90°</text>
+          <text x="188" y="105" text-anchor="end"    font-size="11" fill="var(--ink-soft)">90°</text>
+          <text x="100" y="16"  text-anchor="middle" font-size="11" fill="var(--ink-soft)">180°</text>
+        </svg>
+        <div class="angle-big" id="angle-disp">90<span class="angle-unit">°</span></div>
+        <div class="trigger-pill none" id="trigger-pill">وضع يدوي</div>
+      </div>
+    </div>
+
+    <!-- Mode + Manual Control -->
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+
+      <!-- Auto/Manual mode -->
+      <div class="card">
+        <div class="card-label">وضع التشغيل</div>
+        <div class="mode-card">
+          <div class="mode-info">
+            <div class="mode-name" id="mode-name">تلقائي</div>
+            <div class="mode-desc" id="mode-desc">الحساسات تتحكم بالسيرفو</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="auto-toggle" checked onchange="toggleAuto(this.checked)">
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Manual Slider -->
+      <div class="card" id="manual-card" style="opacity:.4;pointer-events:none;">
+        <div class="card-label">تحكم يدوي</div>
+        <div class="slider-wrap">
+          <input type="range" min="0" max="180" value="90" id="slider"
+            oninput="onSlide(this.value)" onchange="sendManualAngle(this.value)"/>
+          <div class="range-labels"><span>0°</span><span>90°</span><span>180°</span></div>
+        </div>
+        <div class="presets">
+          <button onclick="setAngle(0)"   class="preset-btn">0°</button>
+          <button onclick="setAngle(45)"  class="preset-btn">45°</button>
+          <button onclick="setAngle(90)"  class="preset-btn">90°</button>
+          <button onclick="setAngle(135)" class="preset-btn">135°</button>
+          <button onclick="setAngle(180)" class="preset-btn">180°</button>
+        </div>
+      </div>
+
+      <!-- Threshold -->
+      <div class="card">
+        <div class="card-label">مسافة التفعيل</div>
+        <div class="threshold-row">
+          <button class="thresh-btn" onclick="adjustThreshold(-5)">−</button>
+          <div class="thresh-input-wrap">
+            <input type="range" min="5" max="300" value="50" id="thresh-slider"
+              oninput="onThreshSlide(this.value)"/>
+          </div>
+          <button class="thresh-btn" onclick="adjustThreshold(+5)">+</button>
+          <div class="threshold-val" id="thresh-val">50 <span>سم</span></div>
+        </div>
+      </div>
+
+      <!-- Speed -->
+      <div class="card">
+        <div class="card-label">سرعة حركة السيرفو</div>
+        <div class="threshold-row">
+          <button class="thresh-btn" onclick="adjustSpeed(-2)">−</button>
+          <div class="thresh-input-wrap">
+            <input type="range" min="0" max="60" value="12" id="speed-slider"
+              oninput="onSpeedSlide(this.value)"/>
+            <div class="speed-hint"><span>فوري</span><span>بطيء جدًا</span></div>
+          </div>
+          <button class="thresh-btn" onclick="adjustSpeed(+2)">+</button>
+          <div class="threshold-val" id="speed-val">12 <span>ms/°</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Row 2: Sensors + Log -->
+  <div class="grid-2">
+
+    <!-- Sensors -->
+    <div class="card">
+      <div class="card-label">الحساسات</div>
+      <div class="sensor-list" id="sensor-list">
+        <!-- generated by JS -->
+      </div>
+    </div>
+
+    <!-- Log -->
+    <div class="card">
+      <div class="card-label">السجل</div>
+      <div class="log-box" id="log"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────────
+const SENSORS_DEF = [
+  { name: 'Center', icon: '⬆️', angle: 90,  dir: 'أمام',  pins: 'TRIG:4 ECHO:17' },
+  { name: 'Right',  icon: '➡️', angle: 0,   dir: 'يمين', pins: 'TRIG:5 ECHO:27' },
+  { name: 'Left',   icon: '⬅️', angle: 180, dir: 'يسار',  pins: 'TRIG:18 ECHO:25' },
+];
+
+let ws = null;
+let currentAngle = 90;
+let autoMode = true;
+let thresholdCm = 50;
+let speedMs = 12; // delay (ms) per 1-degree step. 0 = instant
+let sensorEnabled = { Center: true, Right: true, Left: true };
+let sensorDists   = { Center: null, Right: null, Left: null };
+let triggeredBy   = null;
+
+// ─── Build sensor rows ────────────────────────────────────────────────────────
+function buildSensorList() {
+  const el = document.getElementById('sensor-list');
+  el.innerHTML = '';
+  SENSORS_DEF.forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'sensor-row';
+    row.id = `sr-${s.name}`;
+    row.innerHTML = `
+      <span class="sensor-icon">${s.icon}</span>
+      <div class="sensor-body">
+        <div class="sensor-name">${s.name} · ${s.dir}</div>
+        <div class="sensor-meta">${s.pins} · سيرفو: ${s.angle}°</div>
+      </div>
+      <div class="sensor-dist null" id="dist-${s.name}">—</div>
+      <label class="toggle" style="width:42px;height:24px;">
+        <input type="checkbox" id="sen-${s.name}" checked
+          onchange="toggleSensor('${s.name}', this.checked)">
+        <span class="toggle-track" style="border-radius:12px;"></span>
+      </label>
+    `;
+    el.appendChild(row);
+  });
+}
+buildSensorList();
+
+// ─── Update UI from state ─────────────────────────────────────────────────────
+function applyState(s) {
+  // angle 
+  setAngleUI(s.servo_angle);
+
+  // auto mode
+  autoMode = s.auto_mode;
+  document.getElementById('auto-toggle').checked = autoMode;
+  updateModeUI();
+
+  // threshold
+  thresholdCm = s.threshold_cm;
+  document.getElementById('thresh-val').innerHTML = `${thresholdCm} <span>سم</span>`;
+  document.getElementById('thresh-slider').value = thresholdCm;
+
+  // speed
+  if (typeof s.speed_ms !== 'undefined') {
+    speedMs = s.speed_ms;
+    document.getElementById('speed-val').innerHTML = `${speedMs} <span>ms/°</span>`;
+    document.getElementById('speed-slider').value = speedMs;
+  }
+
+  // sensors
+  sensorEnabled = s.sensor_enabled || sensorEnabled;
+  sensorDists   = s.sensor_distances || sensorDists;
+  triggeredBy   = s.triggered_by || null;
+
+  updateTriggerPill();
+  updateSensorRows();
+}
+
+function setAngleUI(angle) {
+  currentAngle = angle;
+  document.getElementById('angle-disp').innerHTML = `${angle}<span class="angle-unit">°</span>`;
+  document.getElementById('slider').value = angle;
+  updateVisual(angle);
+  highlightPreset(angle);
+}
+
+function updateModeUI() {
+  const card = document.getElementById('manual-card');
+  const mn = document.getElementById('mode-name');
+  const md = document.getElementById('mode-desc');
+  if (autoMode) {
+    card.style.opacity = '.4';
+    card.style.pointerEvents = 'none';
+    mn.textContent = 'تلقائي';
+    md.textContent = 'الحساسات تتحكم بالسيرفو';
+  } else {
+    card.style.opacity = '1';
+    card.style.pointerEvents = 'auto';
+    mn.textContent = 'يدوي';
+    md.textContent = 'أنت تتحكم بالسيرفو مباشرة';
+  }
+}
+
+function updateTriggerPill() {
+  const pill = document.getElementById('trigger-pill');
+  if (!autoMode) {
+    pill.className = 'trigger-pill none';
+    pill.textContent = 'وضع يدوي';
+    return;
+  }
+  if (triggeredBy) {
+    const s = SENSORS_DEF.find(x => x.name === triggeredBy);
+    pill.className = 'trigger-pill';
+    pill.innerHTML = `${s ? s.icon : '📡'} مفعَّل بـ ${triggeredBy} · ${sensorDists[triggeredBy] ?? '—'} سم`;
+  } else {
+    pill.className = 'trigger-pill none';
+    pill.textContent = 'لا يوجد كائن قريب';
+  }
+}
+
+function updateSensorRows() {
+  SENSORS_DEF.forEach(s => {
+    const row  = document.getElementById(`sr-${s.name}`);
+    const dist = document.getElementById(`dist-${s.name}`);
+    const chk  = document.getElementById(`sen-${s.name}`);
+
+    const en = sensorEnabled[s.name] !== false;
+    const d  = sensorDists[s.name];
+    const isTrig = triggeredBy === s.name;
+
+    chk.checked = en;
+    row.className = 'sensor-row' +
+      (isTrig ? ' triggered' : '') +
+      (!en ? ' disabled' : '');
+
+    if (!en || d === null || d === undefined) {
+      dist.className = 'sensor-dist null';
+      dist.textContent = '—';
+    } else {
+      const warn = d <= thresholdCm;
+      dist.className = `sensor-dist${warn ? ' warn' : ''}`;
+      dist.textContent = `${d} سم`;
+    }
+  });
+}
+
+// ─── Visual (SVG arm + arc) ───────────────────────────────────────────────────
+function updateVisual(angle) {
+  const arm = document.getElementById('servo-arm');
+  const arc = document.getElementById('arc-path');
+  const cx = 100, cy = 100, r = 72, len = 68;
+  const rad = (angle - 90) * Math.PI / 180;
+  const x2 = cx + len * Math.sin(rad);
+  const y2 = cy - len * Math.cos(rad);
+  arm.setAttribute('x2', x2.toFixed(1));
+  arm.setAttribute('y2', y2.toFixed(1));
+
+  // arc from 0° (bottom = -90° in SVG) to current
+  const startRad = -Math.PI / 2;  // 0° servo = bottom of circle
+  const endRad   = rad;
+  const sx = cx + r * Math.cos(startRad);
+  const sy = cy + r * Math.sin(startRad);
+  const ex = cx + r * Math.cos(endRad);
+  const ey = cy + r * Math.sin(endRad);
+  const large = Math.abs(angle) > 180 ? 1 : 0;
+  const sweep = angle >= 0 ? 1 : 0;
+  arc.setAttribute('d',
+    `M ${sx.toFixed(1)} ${sy.toFixed(1)} A ${r} ${r} 0 ${large} ${sweep} ${ex.toFixed(1)} ${ey.toFixed(1)}`);
+}
+
+function highlightPreset(angle) {
+  document.querySelectorAll('.preset-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.textContent) === angle);
+  });
+}
+document.querySelectorAll('.presets button').forEach(b => b.classList.add('preset-btn'));
+
+// ─── Controls ─────────────────────────────────────────────────────────────────
+function onSlide(val) { setAngleUI(parseInt(val)); }
+
+function sendManualAngle(val) {
+  if (autoMode) return;
+  const angle = parseInt(val);
+  setAngleUI(angle);
+  send({ cmd: 'set_angle', angle });
+  addLog(`أرسل يدوي → ${angle}°`, 'ok');
+}
+
+function setAngle(angle) {
+  if (autoMode) return;
+  document.getElementById('slider').value = angle;
+  sendManualAngle(angle);
+}
+
+function toggleAuto(checked) {
+  autoMode = checked;
+  updateModeUI();
+  updateTriggerPill();
+  send({ cmd: 'set_auto', value: checked });
+  addLog(`الوضع: ${checked ? 'تلقائي' : 'يدوي'}`, 'info');
+}
+
+function toggleSensor(name, value) {
+  sensorEnabled[name] = value;
+  send({ cmd: 'toggle_sensor', name, value });
+  updateSensorRows();
+  addLog(`حساس ${name}: ${value ? 'مفعَّل' : 'معطَّل'}`, 'info');
+}
+
+function onThreshSlide(val) {
+  thresholdCm = parseInt(val);
+  document.getElementById('thresh-val').innerHTML = `${thresholdCm} <span>سم</span>`;
+  send({ cmd: 'set_threshold', value: thresholdCm });
+}
+
+function adjustThreshold(delta) {
+  const sl = document.getElementById('thresh-slider');
+  const newVal = Math.max(5, Math.min(300, thresholdCm + delta));
+  sl.value = newVal;
+  onThreshSlide(newVal);
+}
+
+function onSpeedSlide(val) {
+  speedMs = parseInt(val);
+  document.getElementById('speed-val').innerHTML = `${speedMs} <span>ms/°</span>`;
+  send({ cmd: 'set_speed', value: speedMs });
+  addLog(`سرعة الحركة: ${speedMs} ms/°`, 'info');
+}
+
+function adjustSpeed(delta) {
+  const sl = document.getElementById('speed-slider');
+  const newVal = Math.max(0, Math.min(60, speedMs + delta));
+  sl.value = newVal;
+  onSpeedSlide(newVal);
+}
+
+// ─── WebSocket ────────────────────────────────────────────────────────────────
+function setDot(state) {
+  const d = document.getElementById('dot');
+  d.className = 'dot-status';
+  if (state === 'connected') d.classList.add('connected');
+  else if (state === 'error') d.classList.add('error');
+}
+
+function send(obj) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(obj));
+  }
+}
+
+function connect(ip, port) {
+  if (ws) try { ws.close(); } catch(e) {}
+  setDot('connecting');
+  const url = `ws://${ip}:${port}`;
+  addLog(`جاري الاتصال بـ ${url}…`, 'info');
+  ws = new WebSocket(url);
+  ws.onopen = () => {
+    setDot('connected');
+    addLog('تم الاتصال ✓', 'ok');
+  };
+  ws.onclose = () => {
+    setDot('error');
+    addLog('انقطع الاتصال', 'err');
+  };
+  ws.onerror = () => {
+    setDot('error');
+    addLog('خطأ في الاتصال', 'err');
+  };
+  ws.onmessage = (e) => {
+    try {
+      const data = JSON.parse(e.data);
+      if (data.type === 'state') applyState(data);
+      else if (data.type === 'error') addLog(`خطأ: ${data.msg}`, 'err');
+    } catch { }
+  };
+}
+
+function reconnect() {
+  const ip   = document.getElementById('ip-in').value.trim();
+  const port = document.getElementById('port-in').value.trim() || '9999';
+  if (ip) connect(ip, port);
+}
+
+// ─── Log ──────────────────────────────────────────────────────────────────────
+function addLog(msg, type = '') {
+  const box = document.getElementById('log');
+  const d = document.createElement('div');
+  const t = new Date().toLocaleTimeString('ar');
+  d.className = type ? `log-${type}` : '';
+  d.textContent = `[${t}] ${msg}`;
+  box.appendChild(d);
+  while (box.children.length > 80) box.removeChild(box.firstChild);
+  box.scrollTop = box.scrollHeight;
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+updateVisual(90);
+connect('192.168.10.18', '9999');
+</script>
+</body>
+</html>

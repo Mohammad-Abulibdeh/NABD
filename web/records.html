@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>السجل الطبي | NABD Robot</title>
+<style>
+  :root{
+    --teal-900:#0d2b2b; --teal-700:#0f5b56; --teal-600:#15847c; --teal-500:#1aa89e; --teal-100:#e3f3f1;
+    --ink:#16242b; --ink-soft:#5b6b72; --paper:#ffffff; --bg:#eef3f3; --line:#e3e9e9;
+    --danger:#c0524a; --danger-soft:#fbeae8;
+    --shadow:0 10px 30px -12px rgba(13,43,43,.18);
+    --radius-lg:22px; --radius-md:16px; --radius-sm:10px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Tajawal','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+    background:radial-gradient(circle at 85% 8%, rgba(26,168,158,.10), transparent 45%), var(--bg);
+    color:var(--ink); min-height:100vh; padding:clamp(12px,3vw,36px);
+  }
+  .app-shell{
+    width:100%; max-width:900px; margin:0 auto; background:var(--paper);
+    border-radius:clamp(18px,2.4vw,28px); box-shadow:var(--shadow); overflow:hidden;
+    border:1px solid var(--line); min-height:calc(100vh - 72px);
+  }
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:clamp(16px,2.4vw,26px) clamp(18px,3vw,32px); border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex; align-items:center; gap:12px;}
+  .brand-mark{width:40px; height:40px; border-radius:12px; background:var(--teal-100); display:flex; align-items:center; justify-content:center;}
+  .brand-mark svg{width:22px; height:22px;}
+  .brand-text h1{font-size:1.05rem; font-weight:800; color:var(--teal-900);}
+  .brand-text p{font-size:.72rem; color:var(--ink-soft); font-weight:500;}
+  .back-link{
+    display:flex; align-items:center; gap:8px; font-size:.85rem; font-weight:700; color:var(--teal-700);
+    text-decoration:none; padding:9px 16px; border-radius:999px; border:1px solid var(--line);
+  }
+  .back-link:hover{background:var(--teal-100);}
+  .back-link svg{width:16px; height:16px;}
+
+  .content{ padding:clamp(20px,3vw,36px); }
+  .page-head{ margin-bottom:24px; display:flex; justify-content:space-between; align-items:flex-end; gap:14px; flex-wrap:wrap; }
+  .page-title{ font-size:clamp(1.3rem,2.4vw,1.6rem); font-weight:800; }
+  .page-sub{ color:var(--ink-soft); font-size:.88rem; font-weight:500; margin-top:4px; }
+
+  .filter-row{ display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+  .filter-chip{
+    border:1.5px solid var(--line); background:var(--paper); border-radius:999px; padding:7px 16px;
+    font-size:.8rem; font-weight:700; color:var(--ink-soft); cursor:pointer; transition:all .2s ease;
+  }
+  .filter-chip.active{ border-color:var(--teal-500); background:var(--teal-100); color:var(--teal-700); }
+
+  .records-list{ display:flex; flex-direction:column; gap:12px; }
+  .record-item{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    border:1px solid var(--line); border-radius:var(--radius-md); padding:16px 18px; background:#fafdfc;
+    transition:box-shadow .2s ease;
+  }
+  .record-item:hover{ box-shadow:0 10px 22px -16px rgba(13,43,43,.3); }
+  .record-info{ display:flex; align-items:center; gap:14px; min-width:0; }
+  .record-icon{
+    width:44px; height:44px; border-radius:12px; background:var(--teal-100); color:var(--teal-700);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .record-icon svg{ width:21px; height:21px; }
+  .record-meta{ min-width:0; }
+  .record-meta p:first-child{ font-weight:800; font-size:.92rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .record-meta p:last-child{ font-size:.78rem; color:var(--ink-soft); margin-top:2px; }
+  .record-badge{
+    display:inline-block; margin-inline-start:8px; padding:2px 10px; border-radius:999px; font-size:.7rem; font-weight:800;
+  }
+  .sev-low{ background:#e6f4ea; color:#2c7a39; }
+  .sev-medium{ background:#fff4e0; color:#a9700b; }
+  .sev-high{ background:var(--danger-soft); color:var(--danger); }
+
+  .record-actions{ display:flex; gap:8px; flex-shrink:0; }
+  .icon-action{
+    width:38px; height:38px; border-radius:10px; border:1px solid var(--line); background:var(--paper);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--teal-700);
+  }
+  .icon-action:hover{ background:var(--teal-100); }
+  .icon-action svg{ width:17px; height:17px; }
+  .icon-action.danger{ color:var(--danger); }
+  .icon-action.danger:hover{ background:var(--danger-soft); }
+
+  .empty-state{ text-align:center; padding:70px 20px; color:var(--ink-soft); }
+  .empty-state svg{ width:60px; height:60px; color:var(--line); margin-bottom:16px; }
+  .empty-state p{ font-size:.92rem; font-weight:600; margin-bottom:18px; }
+  .empty-state a{
+    display:inline-flex; align-items:center; gap:8px; background:linear-gradient(160deg,var(--teal-500),var(--teal-700));
+    color:#fff; text-decoration:none; padding:12px 24px; border-radius:999px; font-weight:800; font-size:.88rem;
+  }
+
+  .storage-note{
+    display:flex; gap:10px; align-items:flex-start; background:var(--teal-100); color:var(--teal-900);
+    border-radius:var(--radius-sm); padding:12px 16px; font-size:.8rem; font-weight:600; margin-bottom:20px;
+  }
+  .storage-note svg{ width:18px; height:18px; flex-shrink:0; margin-top:1px; }
+
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--teal-900); color:#fff; padding:13px 22px; border-radius:999px;
+    font-size:.85rem; font-weight:700; box-shadow:0 14px 30px -10px rgba(0,0,0,.4);
+    opacity:0; pointer-events:none; transition:all .3s ease; z-index:999;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ── Password Gate ── */
+  .pw-gate{
+    position:fixed; inset:0; z-index:9999;
+    background:radial-gradient(circle at 60% 30%, rgba(26,168,158,.13), transparent 55%), var(--bg);
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .pw-box{
+    background:var(--paper); border-radius:var(--radius-lg); border:1px solid var(--line);
+    box-shadow:0 20px 50px -16px rgba(13,43,43,.22);
+    padding:clamp(28px,5vw,48px) clamp(24px,5vw,48px);
+    width:100%; max-width:400px; text-align:center;
+  }
+  .pw-icon{
+    width:60px; height:60px; border-radius:18px;
+    background:var(--teal-100); margin:0 auto 20px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .pw-icon svg{ width:30px; height:30px; stroke:var(--teal-700); }
+  .pw-title{ font-size:1.3rem; font-weight:800; color:var(--teal-900); margin-bottom:6px; }
+  .pw-sub{ font-size:.85rem; color:var(--ink-soft); font-weight:500; margin-bottom:24px; }
+  .pw-input{
+    width:100%; padding:13px 18px; border-radius:12px;
+    border:1.5px solid var(--line); font-size:1rem; font-family:monospace;
+    outline:none; background:var(--bg); color:var(--ink);
+    transition:border-color .2s; text-align:center; letter-spacing:3px;
+    margin-bottom:10px;
+  }
+  .pw-input:focus{ border-color:var(--teal-500); }
+  .pw-input.shake{ animation:shake .35s ease; border-color:#e05a5a; }
+  @keyframes shake{
+    0%,100%{transform:translateX(0)} 20%{transform:translateX(-7px)}
+    40%{transform:translateX(7px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)}
+  }
+  .pw-err{ font-size:.8rem; color:#c0524a; font-weight:700; min-height:18px; margin-bottom:10px; }
+  .pw-btn{
+    width:100%; padding:13px; border-radius:12px; border:none;
+    background:linear-gradient(160deg, var(--teal-500), var(--teal-700));
+    color:#fff; font-size:1rem; font-weight:800; cursor:pointer;
+    transition:filter .2s, transform .15s;
+  }
+  .pw-btn:hover{ filter:brightness(1.07); transform:translateY(-1px); }
+  .pw-btn:active{ transform:translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- Password Gate -->
+<div class="pw-gate" id="pwGate">
+  <div class="pw-box">
+    <div class="pw-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
+    </div>
+    <div class="pw-title">السجل الطبي</div>
+    <div class="pw-sub">أدخل كلمة المرور للوصول إلى السجلات</div>
+    <input class="pw-input" id="pwInput" type="password" placeholder="● ● ● ● ● ● ● ●"
+      onkeydown="if(event.key==='Enter') checkPw()" autocomplete="off" />
+    <div class="pw-err" id="pwErr"></div>
+    <button class="pw-btn" onclick="checkPw()">دخول</button>
+  </div>
+</div>
+
+
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#15847c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path>
+          <line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>السجل الطبي</h1>
+        <p>تقاريرك المحفوظة على هذا الجهاز</p>
+      </div>
+    </div>
+    <a class="back-link" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      الرئيسية
+    </a>
+  </header>
+
+  <div class="content">
+    <div class="storage-note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <span>هذه التقارير محفوظة محلياً في متصفحك على هذا الجهاز فقط. حذف بيانات التصفح سيؤدي لفقدانها.</span>
+    </div>
+
+    <div class="page-head">
+      <div>
+        <h2 class="page-title">جميع التقارير</h2>
+        <p class="page-sub" id="countLabel">٠ تقرير محفوظ</p>
+      </div>
+      <a class="back-link" href="diagnosis.html" style="background:linear-gradient(160deg,var(--teal-500),var(--teal-700)); color:#fff; border:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        فحص جديد
+      </a>
+    </div>
+
+    <div class="filter-row" id="filterRow">
+      <button class="filter-chip active" data-filter="all">الكل</button>
+      <button class="filter-chip" data-filter="high">خطورة عالية</button>
+      <button class="filter-chip" data-filter="medium">متوسطة</button>
+      <button class="filter-chip" data-filter="low">بسيطة</button>
+    </div>
+
+    <div class="records-list" id="recordsList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SEVERITY_LABEL = { low:"بسيطة", medium:"متوسطة", high:"عالية" };
+const SYSTEM_LABEL = {
+  skeletal:"الجهاز الهيكلي", muscular:"الجهاز العضلي", circulatory:"الجهاز الدوري",
+  respiratory:"الجهاز التنفسي", nervous:"الجهاز العصبي", digestive:"الجهاز الهضمي",
+  endocrine:"الجهاز الصمّاوي", lymphatic:"الجهاز اللمفاوي"
+};
+
+let currentFilter = "all";
+
+function getRecords(){
+  return JSON.parse(localStorage.getItem("nabd_records") || "[]");
+}
+
+function formatDate(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString("ar-EG", { year:"numeric", month:"long", day:"numeric" }) +
+         " · " + d.toLocaleTimeString("ar-EG", { hour:"2-digit", minute:"2-digit" });
+}
+
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 2800);
+}
+
+function renderRecords(){
+  const all = getRecords();
+  const records = currentFilter==="all" ? all : all.filter(r=>r.severity===currentFilter);
+  const list = document.getElementById("recordsList");
+  document.getElementById("countLabel").textContent = `${all.length} ${all.length===1?'تقرير محفوظ':'تقارير محفوظة'}`;
+
+  if(all.length===0){
+    list.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>
+        <p>لا توجد تقارير محفوظة بعد</p>
+        <a href="diagnosis.html">ابدأ فحصاً جديداً</a>
+      </div>`;
+    return;
+  }
+
+  if(records.length===0){
+    list.innerHTML = `<div class="empty-state"><p>لا توجد تقارير ضمن هذا التصنيف</p></div>`;
+    return;
+  }
+
+  list.innerHTML = records.map(r=>`
+    <div class="record-item" data-id="${r.id}">
+      <div class="record-info">
+        <div class="record-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="record-meta">
+          <p>${r.name || 'تقرير طبي'} <span class="record-badge sev-${r.severity}">${SEVERITY_LABEL[r.severity]||r.severity}</span></p>
+          <p>${formatDate(r.date)} · ${SYSTEM_LABEL[r.system] || r.system}</p>
+        </div>
+      </div>
+      <div class="record-actions">
+        <button class="icon-action" title="تحميل PDF" data-action="download" data-id="${r.id}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+        <button class="icon-action" title="عرض" data-action="view" data-id="${r.id}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+        <button class="icon-action danger" title="حذف" data-action="delete" data-id="${r.id}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join("");
+
+  list.querySelectorAll('[data-action="download"]').forEach(btn=>{
+    btn.addEventListener("click", ()=>downloadRecord(btn.dataset.id));
+  });
+  list.querySelectorAll('[data-action="view"]').forEach(btn=>{
+    btn.addEventListener("click", ()=>viewRecord(btn.dataset.id));
+  });
+  list.querySelectorAll('[data-action="delete"]').forEach(btn=>{
+    btn.addEventListener("click", ()=>deleteRecord(btn.dataset.id));
+  });
+}
+
+function findRecord(id){
+  return getRecords().find(r=>String(r.id)===String(id));
+}
+
+function base64ToBlobUrl(base64){
+  const byteChars = atob(base64);
+  const byteNumbers = new Array(byteChars.length);
+  for(let i=0;i<byteChars.length;i++){ byteNumbers[i] = byteChars.charCodeAt(i); }
+  const byteArray = new Uint8Array(byteNumbers);
+  const blob = new Blob([byteArray], { type:"application/pdf" });
+  return URL.createObjectURL(blob);
+}
+
+function downloadRecord(id){
+  const rec = findRecord(id);
+  if(!rec) return;
+  const url = base64ToBlobUrl(rec.pdfBase64);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `nabd-report-${rec.id}.pdf`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function viewRecord(id){
+  const rec = findRecord(id);
+  if(!rec) return;
+  const url = base64ToBlobUrl(rec.pdfBase64);
+  window.open(url, "_blank");
+}
+
+function deleteRecord(id){
+  if(!confirm("هل أنت متأكد من حذف هذا التقرير؟")) return;
+  const records = getRecords().filter(r=>String(r.id)!==String(id));
+  localStorage.setItem("nabd_records", JSON.stringify(records));
+  renderRecords();
+  showToast("تم حذف التقرير");
+}
+
+document.getElementById("filterRow").addEventListener("click", e=>{
+  const chip = e.target.closest(".filter-chip");
+  if(!chip) return;
+  document.querySelectorAll(".filter-chip").forEach(c=>c.classList.remove("active"));
+  chip.classList.add("active");
+  currentFilter = chip.dataset.filter;
+  renderRecords();
+});
+
+renderRecords();
+
+// ── Password Gate ──────────────────────────────────────────────────────────
+(function(){
+  const CORRECT = 'NABD12345678';
+  const SESSION_KEY = 'nabd_auth';
+
+  function checkPw(){
+    const val = document.getElementById('pwInput').value;
+    if(val === CORRECT){
+      sessionStorage.setItem(SESSION_KEY, '1');
+      const gate = document.getElementById('pwGate');
+      gate.style.transition = 'opacity .3s ease';
+      gate.style.opacity = '0';
+      setTimeout(()=>{ gate.style.display='none'; }, 300);
+    } else {
+      const inp = document.getElementById('pwInput');
+      const err = document.getElementById('pwErr');
+      err.textContent = 'كلمة المرور غير صحيحة';
+      inp.classList.add('shake');
+      inp.value = '';
+      setTimeout(()=>inp.classList.remove('shake'), 400);
+    }
+  }
+  window.checkPw = checkPw;
+
+  // If already authenticated in this session, skip gate
+  if(sessionStorage.getItem(SESSION_KEY) === '1'){
+    document.getElementById('pwGate').style.display = 'none';
+  } else {
+    // Focus input after render
+    setTimeout(()=>{ const i=document.getElementById('pwInput'); if(i) i.focus(); }, 100);
+  }
+})();
+</script>
+</body>
+</html>

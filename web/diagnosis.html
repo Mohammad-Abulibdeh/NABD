@@ -1,0 +1,2141 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>التشخيص الطبي | NABD Robot</title>
+
+<!-- Skip link for keyboard users -->
+<style>
+  .skip-link {
+    position: absolute;
+    top: -999px; left: 0;
+    background: #0f5b56; color: #fff;
+    padding: 12px 20px; font-size: 1rem; font-weight: 800;
+    z-index: 9999; border-radius: 0 0 12px 0;
+    text-decoration: none;
+    transition: top .2s;
+  }
+  .skip-link:focus { top: 0; }
+</style>
+
+<style>:root{
+  --bg-1:#eefcf7;
+  --bg-2:#e7f3fb;
+  --bg-3:#f5fbf9;
+  --glow-teal:rgba(20,184,166,.16);
+  --glow-cyan:rgba(56,189,248,.14);
+  --glow-mint:rgba(52,211,153,.12);
+
+  --surface-glass:rgba(255,255,255,.5);
+  --surface-glass-strong:rgba(255,255,255,.7);
+  --surface-light:rgba(255,255,255,.6);
+  --surface-light-2:rgba(255,255,255,.8);
+
+  --border-glass:rgba(255,255,255,.75);
+  --border-light:rgba(15,90,80,.12);
+
+  --teal:#0d9488;
+  --teal-deep:#0f766e;
+  --teal-soft:#2dd4bf;
+  --gold:#0d9488;
+  --gold-soft:#2dd4bf;
+  --violet:#0ea5e9;
+  --violet-soft:#38bdf8;
+  --mint:#10b981;
+
+  --ink:#0d2321;
+  --ink-soft:#4a635f;
+  --ink-faint:#7d9490;
+
+  --danger:#e0435a;
+  --danger-soft:#fdecec;
+
+  --radius-lg:22px;
+  --radius-md:16px;
+  --radius-sm:11px;
+
+  --shadow-float:0 40px 90px -32px rgba(15,90,80,.20), 0 10px 26px -12px rgba(15,90,80,.12);
+  --shadow-card:0 14px 34px -18px rgba(15,90,80,.14);
+  --shadow-card-hover:0 22px 48px -18px rgba(13,148,136,.26);
+  --shadow-inset:inset 0 1px 0 rgba(255,255,255,.85);
+
+  --ease:cubic-bezier(.22,1,.36,1);
+  --font-main:'Tajawal','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+::selection{background:var(--teal-soft);color:#0d2321;}
+::-webkit-scrollbar{width:9px;}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--teal),var(--violet));border-radius:99px;}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes blink{0%,80%,100%{opacity:.25;}40%{opacity:1;}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(224,67,90,.3);}50%{box-shadow:0 0 0 9px rgba(224,67,90,0);}}
+@keyframes pulse2{0%,100%{opacity:1;}50%{opacity:.3;}}
+@keyframes bgDrift{0%,100%{background-position:0% 0%,100% 100%,50% 50%;}50%{background-position:14% 8%,86% 92%,46% 54%;}}
+@keyframes glassSheen{0%{transform:translateX(-120%) skewX(-20deg);}100%{transform:translateX(220%) skewX(-20deg);}}
+
+.skip-link{
+  position:absolute;top:-999px;left:0;
+  background:rgba(255,255,255,.7);
+  backdrop-filter:blur(14px) saturate(180%);
+  -webkit-backdrop-filter:blur(14px) saturate(180%);
+  border:1px solid var(--border-glass);
+  color:var(--teal-deep);padding:12px 22px;font-size:1rem;font-weight:900;
+  z-index:9999;border-radius:0 0 var(--radius-md) 0;text-decoration:none;
+  transition:top .25s var(--ease);
+}
+.skip-link:focus{top:0;}
+
+body{
+  font-family:var(--font-main);
+  min-height:100vh;margin:0;color:var(--ink);
+  padding:clamp(12px,3vw,36px);
+  background:
+    radial-gradient(circle at 10% 6%, var(--glow-teal), transparent 42%),
+    radial-gradient(circle at 90% 12%, var(--glow-cyan), transparent 46%),
+    radial-gradient(circle at 50% 100%, var(--glow-mint), transparent 50%),
+    linear-gradient(160deg,var(--bg-1) 0%,var(--bg-2) 55%,var(--bg-3) 100%);
+  background-size:180% 180%,180% 180%,180% 180%,100% 100%;
+  animation:bgDrift 24s ease-in-out infinite;
+}
+
+:focus-visible{outline:3px solid var(--teal);outline-offset:3px;border-radius:6px;}
+:focus:not(:focus-visible){outline:none;}
+
+.app-shell{
+  width:100%;max-width:1100px;margin:0 auto;
+  background:var(--surface-light);
+  backdrop-filter:blur(26px) saturate(160%);
+  -webkit-backdrop-filter:blur(26px) saturate(160%);
+  border-radius:clamp(18px,2.4vw,28px);
+  box-shadow:var(--shadow-float);
+  overflow:hidden;border:1px solid var(--border-glass);
+  min-height:calc(100vh - 72px);
+  display:flex;flex-direction:column;
+  animation:fadeInUp .7s var(--ease) both;
+}
+
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:clamp(14px,2vw,20px) clamp(18px,3vw,32px);
+  border-bottom:1px solid var(--border-light);
+  background:rgba(255,255,255,.35);
+  flex-wrap:wrap;gap:12px;
+}
+
+.brand{display:flex;align-items:center;gap:12px;}
+.brand-mark{
+  width:42px;height:42px;flex-shrink:0;border-radius:13px;
+  background:rgba(255,255,255,.7);
+  border:1px solid var(--border-glass);
+  backdrop-filter:blur(10px);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 18px -10px rgba(13,148,136,.3), var(--shadow-inset);
+}
+.brand-mark svg{width:22px;height:22px;stroke:var(--teal-deep) !important;}
+.brand-text h1{font-size:1.02rem;font-weight:900;color:var(--ink);}
+.brand-text p{font-size:.7rem;color:var(--ink-faint);font-weight:600;}
+
+/* ===== Unified glassy button base ===== */
+.back-link,
+.font-size-ctrl button,
+.round-btn,
+.btn,
+.choice-card,
+.gender-pick button,
+.upload-card{
+  background:var(--surface-glass);
+  border:1px solid var(--border-glass);
+  backdrop-filter:blur(16px) saturate(180%);
+  -webkit-backdrop-filter:blur(16px) saturate(180%);
+  box-shadow:var(--shadow-inset), 0 8px 18px -12px rgba(13,148,136,.16);
+}
+
+.back-link{
+  display:flex;align-items:center;gap:8px;
+  font-size:.85rem;font-weight:700;color:var(--teal-deep);
+  text-decoration:none;padding:9px 16px;border-radius:999px;
+  border-color:rgba(13,148,136,.28);
+  background:rgba(20,184,166,.1);
+  transition:background .25s ease,transform .25s var(--ease),border-color .3s;
+  min-height:44px;
+  position:relative;overflow:hidden;
+}
+.back-link:hover{background:rgba(20,184,166,.2);border-color:rgba(13,148,136,.42);transform:translateY(-2px);}
+.back-link svg{width:16px;height:16px;}
+
+.font-size-ctrl{
+  display:flex;align-items:center;gap:8px;
+  font-size:.78rem;color:var(--ink-soft);font-weight:700;
+}
+.font-size-ctrl button{
+  border-radius:9px;padding:4px 10px;cursor:pointer;
+  font-family:inherit;font-size:.85rem;font-weight:800;color:var(--teal-deep);
+  min-width:32px;min-height:32px;transition:background .2s ease,transform .2s ease,border-color .3s;
+}
+.font-size-ctrl button:hover{background:rgba(20,184,166,.16);border-color:rgba(13,148,136,.35);transform:translateY(-1px);}
+
+.progress-track{display:flex;align-items:center;gap:6px;padding:16px clamp(18px,3vw,32px) 0;}
+.progress-seg{
+  flex:1;height:5px;border-radius:99px;background:var(--border-light);
+  overflow:hidden;position:relative;
+}
+.progress-seg::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(90deg,var(--teal),var(--violet));
+  transform:scaleX(0);transform-origin:right center;transition:transform .5s var(--ease);
+}
+.progress-seg.done::after,.progress-seg.active::after{transform:scaleX(1);}
+.progress-label{
+  padding:9px clamp(18px,3vw,32px) 0;
+  font-size:.76rem;color:var(--ink-soft);font-weight:700;
+}
+
+.stage{flex:1;display:none;flex-direction:column;padding:clamp(20px,3vw,40px) clamp(18px,3vw,32px) clamp(28px,3vw,40px);}
+.stage.active{display:flex;animation:fadeIn .4s var(--ease);}
+
+.stage-head{margin-bottom:24px;}
+.stage-eyebrow{color:var(--violet);font-weight:800;font-size:.82rem;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.stage-title{font-size:clamp(1.3rem,2.6vw,1.75rem);font-weight:900;color:var(--ink);line-height:1.3;}
+.stage-sub{color:var(--ink-soft);font-size:.92rem;margin-top:7px;font-weight:500;}
+
+.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px;}
+@media(max-width:640px){.choice-grid{grid-template-columns:1fr;}}
+
+.choice-card{
+  border-radius:var(--radius-md);
+  padding:26px 20px;text-align:center;cursor:pointer;
+  transition:border-color .3s ease,transform .35s var(--ease),box-shadow .35s ease,background .3s;
+  position:relative;overflow:hidden;
+}
+.choice-card::before{
+  content:"";position:absolute;top:0;left:-45%;width:45%;height:100%;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.85),transparent);
+  transform:translateX(-120%) skewX(-20deg);pointer-events:none;
+}
+.choice-card:hover::before{animation:glassSheen 1s ease forwards;}
+.choice-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-card-hover);border-color:rgba(13,148,136,.35);background:rgba(255,255,255,.72);}
+.choice-card.selected{border-color:var(--teal);background:rgba(20,184,166,.14);}
+.choice-card.selected::after{
+  content:"✓";position:absolute;top:12px;left:14px;
+  color:var(--teal-deep);font-size:1.15rem;font-weight:900;
+}
+.choice-icon{
+  width:58px;height:58px;border-radius:17px;margin:0 auto 16px;
+  background:rgba(20,184,166,.14);
+  border:1px solid rgba(13,148,136,.26);
+  backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;color:var(--teal-deep);
+  transition:transform .4s var(--ease);
+}
+.choice-card:hover .choice-icon{transform:rotate(-6deg) scale(1.06);}
+.choice-icon svg{width:50%;height:50%;}
+.choice-card h3{font-size:1.04rem;font-weight:800;margin-bottom:5px;color:var(--ink);}
+.choice-card p{font-size:.82rem;color:var(--ink-soft);font-weight:500;}
+
+.hint{font-size:.78rem;color:var(--ink-soft);font-weight:500;margin-top:6px;}
+.kb-hint{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:.72rem;color:var(--ink-soft);font-weight:700;
+  padding:2px 7px;background:var(--surface-light-2);border-radius:6px;border:1px solid var(--border-light);
+}
+
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:640px){.field-grid{grid-template-columns:1fr;}}
+.field{display:flex;flex-direction:column;gap:7px;}
+.field.full{grid-column:1/-1;}
+.field label{font-size:.85rem;font-weight:700;color:var(--ink);}
+.field label .required-mark{color:var(--danger);margin-right:3px;}
+.field input,.field select,.field textarea{
+  border:1.5px solid var(--border-light);border-radius:var(--radius-sm);
+  padding:12px 14px;font-size:.95rem;font-family:inherit;color:var(--ink);
+  background:rgba(255,255,255,.7);transition:border-color .25s ease,box-shadow .25s ease,background .25s ease;
+  min-height:44px;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--teal);box-shadow:0 0 0 3px rgba(20,184,166,.16);outline:none;background:#fff;
+}
+.field textarea{resize:vertical;min-height:90px;}
+.field .field-error{color:var(--danger);font-size:.78rem;font-weight:700;display:none;}
+.field.has-error input,.field.has-error textarea,.field.has-error select{border-color:var(--danger);}
+.field.has-error .field-error{display:block;}
+
+.gender-pick{display:flex;gap:10px;}
+.gender-pick button{
+  flex:1;padding:12px;border-radius:var(--radius-sm);
+  font-family:inherit;font-size:.92rem;font-weight:700;
+  color:var(--ink-soft);cursor:pointer;transition:all .25s ease;
+  min-height:44px;
+}
+.gender-pick button.selected,.gender-pick button[aria-pressed="true"]{
+  border-color:var(--teal);background:rgba(20,184,166,.16);color:var(--teal-deep);
+}
+
+.chat-wrap{
+  display:flex;flex-direction:column;flex:1;
+  border:1px solid var(--border-light);border-radius:var(--radius-md);
+  overflow:hidden;background:rgba(255,255,255,.4);
+  backdrop-filter:blur(14px);
+  min-height:420px;
+}
+.chat-log{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;max-height:480px;}
+.msg{max-width:80%;padding:12px 16px;border-radius:18px;font-size:.92rem;line-height:1.6;font-weight:500;}
+.msg.bot{
+  align-self:flex-start;
+  background:rgba(56,189,248,.14);color:#0c4a6e;
+  border:1px solid rgba(14,165,233,.2);
+  border-bottom-left-radius:5px;
+}
+.msg.user{
+  align-self:flex-end;
+  background:linear-gradient(150deg,var(--teal),var(--teal-deep));color:#fff;
+  border-bottom-right-radius:5px;
+}
+.msg.typing{display:flex;gap:4px;align-items:center;padding:14px 18px;}
+.msg.typing span{width:6px;height:6px;border-radius:50%;background:var(--violet);animation:blink 1.2s infinite ease-in-out;}
+.msg.typing span:nth-child(2){animation-delay:.2s;}
+.msg.typing span:nth-child(3){animation-delay:.4s;}
+
+.chat-input-row{
+  display:flex;gap:10px;padding:14px;border-top:1px solid var(--border-light);
+  background:rgba(255,255,255,.5);align-items:flex-end;
+}
+.chat-input-row textarea{
+  flex:1;border:1.5px solid var(--border-light);border-radius:16px;padding:11px 16px;
+  font-family:inherit;font-size:.92rem;resize:none;max-height:120px;min-height:44px;
+  background:rgba(255,255,255,.7);
+  transition:border-color .25s ease,background .25s ease;
+}
+.chat-input-row textarea:focus{border-color:var(--teal);outline:none;box-shadow:0 0 0 3px rgba(20,184,166,.16);background:#fff;}
+
+.round-btn{
+  width:44px;height:44px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:transform .2s var(--ease),filter .25s ease,box-shadow .25s ease,border-color .3s,background .3s;
+  position:relative;
+}
+.round-btn:hover{filter:brightness(1.05);transform:translateY(-2px);}
+.round-btn svg{width:19px;height:19px;}
+.send-btn{
+  background:linear-gradient(150deg,rgba(20,184,166,.28),rgba(56,189,248,.2));
+  color:var(--teal-deep);border-color:rgba(13,148,136,.32);
+}
+.send-btn:hover{background:linear-gradient(150deg,rgba(20,184,166,.4),rgba(56,189,248,.28));}
+.mic-btn{color:#0369a1;background:rgba(56,189,248,.14);border-color:rgba(14,165,233,.26);}
+.mic-btn.recording{background:var(--danger-soft);color:var(--danger);border-color:var(--danger);animation:pulse 1.3s infinite;}
+.mic-btn.speaking{background:rgba(255,193,90,.18);color:#a9700b;border-color:rgba(169,112,11,.4);}
+
+.live-banner{
+  display:flex;align-items:center;gap:10px;padding:10px 16px;margin:0 0 12px;
+  background:rgba(56,189,248,.12);border:1px solid rgba(14,165,233,.22);
+  border-radius:var(--radius-sm);font-size:.82rem;color:#0369a1;font-weight:700;
+}
+.live-banner .ring{width:9px;height:9px;border-radius:50%;background:var(--violet);animation:pulse2 1.4s infinite;}
+
+.auto-listen-banner{
+  display:none;align-items:center;gap:10px;padding:10px 16px;margin:0 0 8px;
+  background:var(--danger-soft);border-radius:var(--radius-sm);font-size:.82rem;color:var(--danger);font-weight:700;
+  border:1px solid var(--danger);
+}
+.auto-listen-banner.visible{display:flex;}
+.auto-listen-banner .ring{width:9px;height:9px;border-radius:50%;background:var(--danger);animation:pulse2 1s infinite;}
+
+.speaking-banner{
+  display:none;align-items:center;gap:10px;padding:10px 16px;margin:0 0 8px;
+  background:rgba(255,193,90,.16);border-radius:var(--radius-sm);font-size:.82rem;color:#a9700b;font-weight:700;
+  cursor:pointer;border:1px dashed #a9700b;
+}
+.speaking-banner.visible{display:flex;}
+.speaking-banner .ring{width:9px;height:9px;border-radius:50%;background:#a9700b;animation:pulse2 1s infinite;}
+
+.body-stage-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;flex:1;}
+@media(max-width:820px){.body-stage-grid{grid-template-columns:1fr;}}
+
+.model-frame-wrap{
+  border:1px solid var(--border-light);border-radius:var(--radius-md);overflow:hidden;
+  background:#eef6f4;position:relative;min-height:420px;
+}
+.model-frame-wrap iframe{width:100%;height:100%;min-height:420px;border:0;display:block;}
+.model-loading{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:var(--teal-deep);gap:10px;font-size:.85rem;font-weight:600;
+}
+.spinner{
+  width:34px;height:34px;border-radius:50%;border:3px solid rgba(13,148,136,.16);
+  border-top-color:var(--teal);animation:spin .9s linear infinite;
+}
+
+.pain-panel{display:flex;flex-direction:column;gap:14px;}
+.pain-card{
+  border:1px solid var(--border-light);border-radius:var(--radius-md);padding:18px;
+  background:rgba(255,255,255,.5);backdrop-filter:blur(12px);
+}
+.pain-card h4{font-size:.95rem;font-weight:800;margin-bottom:10px;color:var(--ink);}
+.pain-list{display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;}
+.pain-chip{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  background:rgba(56,189,248,.14);color:#0c4a6e;border-radius:11px;
+  border:1px solid rgba(14,165,233,.2);
+  padding:9px 12px;font-size:.84rem;font-weight:700;
+}
+.pain-chip button{
+  background:none;border:none;color:var(--danger);cursor:pointer;font-size:1.1rem;line-height:1;
+  padding:4px 6px;min-width:32px;min-height:32px;border-radius:6px;
+}
+.pain-empty{font-size:.82rem;color:var(--ink-soft);font-weight:500;padding:8px 0;}
+
+.btn{
+  border-radius:999px;padding:13px 26px;font-family:inherit;
+  font-size:.92rem;font-weight:800;cursor:pointer;
+  transition:transform .25s var(--ease),filter .25s ease,box-shadow .25s ease,border-color .3s,background .3s;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:44px;min-width:44px;position:relative;overflow:hidden;
+}
+.btn::before{
+  content:"";position:absolute;top:0;left:-45%;width:45%;height:100%;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.85),transparent);
+  transform:translateX(-120%) skewX(-20deg);pointer-events:none;
+}
+.btn:hover:not(:disabled)::before{animation:glassSheen .9s ease forwards;}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.btn-primary{
+  color:var(--teal-deep);
+  background:linear-gradient(150deg,rgba(20,184,166,.24),rgba(56,189,248,.16));
+  border-color:rgba(13,148,136,.34);
+  box-shadow:var(--shadow-inset), 0 12px 24px -14px rgba(13,148,136,.32);
+}
+.btn-primary:hover:not(:disabled){
+  transform:translateY(-3px);
+  background:linear-gradient(150deg,rgba(20,184,166,.34),rgba(56,189,248,.24));
+  border-color:rgba(13,148,136,.5);
+  box-shadow:0 18px 34px -16px rgba(13,148,136,.4);
+}
+.btn-ghost{color:#0369a1;border-color:rgba(14,165,233,.26);background:rgba(56,189,248,.08);}
+.btn-ghost:hover{background:rgba(56,189,248,.16);border-color:rgba(14,165,233,.4);transform:translateY(-3px);}
+.btn svg{width:17px;height:17px;}
+
+.stage-actions{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:28px;
+  padding-top:20px;border-top:1px solid var(--border-light);
+}
+
+.summary-card{
+  border:1px solid var(--border-light);border-radius:var(--radius-md);padding:20px 22px;
+  background:rgba(255,255,255,.5);backdrop-filter:blur(12px);
+}
+.summary-card + .summary-card{margin-top:14px;}
+.summary-card h4{font-size:.9rem;font-weight:800;color:var(--violet);margin-bottom:10px;}
+.summary-row{display:flex;justify-content:space-between;gap:12px;font-size:.88rem;padding:6px 0;border-bottom:1px dashed var(--border-light);}
+.summary-row:last-child{border-bottom:none;}
+.summary-row span:first-child{color:var(--ink-soft);font-weight:600;}
+.summary-row span:last-child{font-weight:700;}
+
+.severity-badge{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;
+  font-size:.78rem;font-weight:800;
+}
+.severity-low{background:#e4f3ea;color:#2c7a39;}
+.severity-mid{background:#fff4e0;color:#a9700b;}
+.severity-high{background:var(--danger-soft);color:var(--danger);}
+
+.upload-card{
+  border:1.5px dashed var(--border-glass-strong,rgba(13,148,136,.3));border-radius:var(--radius-md);padding:22px;
+  text-align:center;cursor:pointer;
+  transition:border-color .25s ease,background .25s ease,transform .25s ease;
+  min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.upload-card:hover{border-color:var(--teal);background:rgba(20,184,166,.1);transform:translateY(-2px);}
+.upload-card svg{width:30px;height:30px;color:var(--violet);margin-bottom:8px;}
+.upload-card p{font-size:.85rem;font-weight:700;color:var(--ink);}
+.upload-card span{font-size:.76rem;color:var(--ink-soft);font-weight:500;display:block;margin-top:4px;}
+.upload-thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;}
+.upload-thumb{position:relative;width:84px;height:84px;border-radius:13px;overflow:hidden;border:1px solid var(--border-light);}
+.upload-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.upload-thumb .thumb-remove{
+  position:absolute;top:3px;left:3px;width:28px;height:28px;border-radius:50%;
+  background:rgba(255,255,255,.55);backdrop-filter:blur(8px);
+  color:var(--danger);border:1px solid var(--border-glass);cursor:pointer;font-size:.85rem;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+}
+
+.footer-note{
+  text-align:center;font-size:.74rem;color:var(--ink-faint);padding:16px;
+  border-top:1px solid var(--border-light);
+  background:rgba(255,255,255,.3);
+}
+
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+#a11yAnnouncer,#a11yPolite{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:rgba(255,255,255,.7);backdrop-filter:blur(18px) saturate(180%);
+  -webkit-backdrop-filter:blur(18px) saturate(180%);
+  border:1px solid var(--border-glass);
+  color:var(--ink);padding:13px 22px;border-radius:999px;
+  font-size:.85rem;font-weight:700;box-shadow:0 18px 36px -14px rgba(15,90,80,.3);
+  opacity:0;pointer-events:none;transition:all .35s var(--ease);z-index:999;display:flex;align-items:center;gap:8px;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast svg{width:16px;height:16px;flex-shrink:0;}
+
+@media(forced-colors:active){
+  .choice-card.selected{forced-color-adjust:none;border:3px solid Highlight;}
+  .btn-primary{forced-color-adjust:none;background:Highlight;color:HighlightText;}
+  .progress-seg.active::after,.progress-seg.done::after{background:Highlight;}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
+}
+
+@media(max-width:560px){
+  body{padding:0;}
+  .app-shell{border-radius:0;min-height:100vh;}
+  .topbar{padding:14px 16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- Skip navigation for keyboard/screen reader users -->
+<a class="skip-link" href="#mainContent">تخطي إلى المحتوى الرئيسي</a>
+
+<!-- Live region: screen readers will announce changes here -->
+<div id="a11yAnnouncer" aria-live="assertive" aria-atomic="true" role="status"></div>
+<!-- Polite region for non-urgent announcements -->
+<div id="a11yPolite" aria-live="polite" aria-atomic="true" role="status" class="sr-only"></div>
+
+<div class="app-shell" role="application" aria-label="تطبيق الفرز الطبي NABD">
+
+  <header class="topbar" role="banner">
+    <div class="brand">
+      <div class="brand-mark" role="img" aria-label="شعار NABD">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#15847c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          <polyline points="3.5 12 7.5 12 9.5 8 11.5 16 13.5 10 15 12 20.5 12"></polyline>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>التشخيص الطبي</h1>
+        <p>NABD Robot · مساعد الفرز الطبي</p>
+      </div>
+      
+    </div>
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <!-- Font size controls for low vision users -->
+      <div class="font-size-ctrl" role="group" aria-label="حجم الخط">
+        <span>حجم الخط:</span>
+        <button id="fontDecBtn" aria-label="تصغير الخط" title="تصغير الخط">ا−</button>
+        <button id="fontIncBtn" aria-label="تكبير الخط" title="تكبير الخط">ا+</button>
+      </div>
+      <a class="back-link" href="index.html" aria-label="العودة للصفحة الرئيسية">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        الرئيسية
+      </a>
+    </div>
+  </header>
+
+  <!-- Progress indicator -->
+  <nav aria-label="خطوات الفرز الطبي" role="navigation">
+    <div class="progress-track" id="progressTrack" role="list">
+      <div class="progress-seg" data-step="0" role="listitem" aria-label="طريقة التواصل"></div>
+      <div class="progress-seg" data-step="1" role="listitem" aria-label="المعلومات الشخصية"></div>
+      <div class="progress-seg" data-step="2" role="listitem" aria-label="الفرز الطبي"></div>
+      <div class="progress-seg" data-step="3" role="listitem" aria-label="موضع الألم"></div>
+      <div class="progress-seg" data-step="4" role="listitem" aria-label="الصور الطبية"></div>
+      <div class="progress-seg" data-step="5" role="listitem" aria-label="التقرير النهائي"></div>
+    </div>
+    <div class="progress-label" id="progressLabel" aria-live="polite">الخطوة ١ من ٦ · طريقة التواصل</div>
+  </nav>
+
+  <main id="mainContent">
+
+  <!-- STAGE 0: communication mode -->
+  <section class="stage active" id="stage-mode"
+    aria-labelledby="modeTitle"
+    role="region">
+    <div class="stage-head">
+      <p class="stage-eyebrow" aria-hidden="true">قبل ما نبدأ</p>
+      <h2 class="stage-title" id="modeTitle">كيف تريد التواصل مع الروبوت؟</h2>
+      <p class="stage-sub">يمكنك التحدث بصوتك وسماع الأسئلة، أو الكتابة بشكل طبيعي.</p>
+    </div>
+
+    <div class="choice-grid" role="radiogroup" aria-labelledby="modeTitle" aria-required="true">
+      <div class="choice-card" data-mode="voice" id="cardVoice"
+        role="radio" aria-checked="false" tabindex="0"
+        aria-describedby="voiceCardDesc">
+        <div class="choice-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/>
+          </svg>
+        </div>
+        <h3>محادثة صوتية مباشرة</h3>
+        <p id="voiceCardDesc">المايكروفون يفتح تلقائياً بعد كل سؤال — مناسب للمكفوفين وضعاف البصر</p>
+      </div>
+      <div class="choice-card" data-mode="text" id="cardText"
+        role="radio" aria-checked="false" tabindex="0"
+        aria-describedby="textCardDesc">
+        <div class="choice-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <h3>كتابة طبيعية</h3>
+        <p id="textCardDesc">اكتب إجاباتك بلوحة المفاتيح كالمحادثة العادية</p>
+      </div>
+    </div>
+
+    <p class="hint" id="voiceHint" style="display:none;" role="alert">
+      ⚠️ المحادثة الصوتية تحتاج إذن استخدام المايكروفون، وتعمل بشكل أفضل على متصفح Chrome.
+    </p>
+
+    <p class="hint" style="margin-top:8px;">
+      <span class="kb-hint" aria-hidden="true">↑ ↓ أو Space</span>
+      للتنقل بين الخيارات بلوحة المفاتيح
+    </p>
+
+    <div class="stage-actions">
+      <span></span>
+      <button class="btn btn-primary" id="modeNextBtn" disabled aria-disabled="true">
+        التالي
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- STAGE 1: personal info -->
+  <section class="stage" id="stage-personal"
+    aria-labelledby="personalTitle"
+    role="region">
+    <div class="stage-head">
+      <p class="stage-eyebrow" aria-hidden="true">معلومات أساسية</p>
+      <h2 class="stage-title" id="personalTitle">قبل الفحص، عرّفنا عن نفسك</h2>
+      <p class="stage-sub">هذه المعلومات تساعد في تحديد الفرز الطبي بدقة أكبر.</p>
+    </div>
+
+    <div class="field-grid" role="group" aria-labelledby="personalTitle">
+      <div class="field" id="fieldName">
+        <label for="pName">الاسم الكامل <span class="required-mark" aria-hidden="true">*</span><span class="sr-only">(مطلوب)</span></label>
+        <input type="text" id="pName" placeholder="مثال: علي سليم أبوعمر"
+          autocomplete="name" aria-required="true" aria-describedby="nameError">
+        <span class="field-error" id="nameError" role="alert">الرجاء إدخال الاسم الكامل</span>
+      </div>
+      <div class="field" id="fieldAge">
+        <label for="pAge">العمر <span class="required-mark" aria-hidden="true">*</span><span class="sr-only">(مطلوب)</span></label>
+        <input type="number" id="pAge" min="1" max="120" placeholder="مثال: 25"
+          autocomplete="age" aria-required="true" aria-describedby="ageError">
+        <span class="field-error" id="ageError" role="alert">الرجاء إدخال العمر</span>
+      </div>
+      <div class="field full" id="fieldGender">
+        <label id="genderLabel">الجنس <span class="required-mark" aria-hidden="true">*</span><span class="sr-only">(مطلوب)</span></label>
+        <div class="gender-pick" role="group" aria-labelledby="genderLabel" aria-required="true" id="genderGroup">
+          <button type="button" data-gender="male" id="genderMale"
+            aria-pressed="false" aria-label="ذكر">ذكر</button>
+          <button type="button" data-gender="female" id="genderFemale"
+            aria-pressed="false" aria-label="أنثى">أنثى</button>
+        </div>
+        <p class="hint">يُستخدم لاختيار المجسم التشريحي المناسب فقط.</p>
+        <span class="field-error" id="genderError" role="alert" style="display:none;">الرجاء اختيار الجنس</span>
+      </div>
+      <div class="field">
+        <label for="pPhone">رقم الهاتف <span style="color:var(--ink-soft); font-weight:500;">(اختياري)</span></label>
+        <input type="tel" id="pPhone" placeholder="05xxxxxxxx" autocomplete="tel">
+      </div>
+      <div class="field">
+        <label for="pCity">المدينة</label>
+        <input type="text" id="pCity" placeholder="مثال: رام الله" autocomplete="address-level2">
+      </div>
+      <div class="field full">
+        <label for="pHistory">أمراض مزمنة أو أدوية حالية <span style="color:var(--ink-soft); font-weight:500;">(إن وجدت)</span></label>
+        <textarea id="pHistory" placeholder="مثال: سكري، ضغط، حساسية من البنسلين..."
+          aria-describedby="historyHint"></textarea>
+        <p class="hint" id="historyHint">أذكر أي أدوية تتناولها حالياً أو حساسيات دوائية مهمة.</p>
+      </div>
+    </div>
+
+    <div class="stage-actions">
+      <button class="btn btn-ghost" id="personalBackBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        السابق
+      </button>
+      <button class="btn btn-primary" id="personalNextBtn">
+        بدء الفحص
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- STAGE 2: AI triage chat -->
+  <section class="stage" id="stage-chat"
+    aria-labelledby="chatTitle"
+    role="region">
+    <div class="stage-head">
+      <p class="stage-eyebrow" aria-hidden="true">الفرز الطبي</p>
+      <h2 class="stage-title" id="chatTitle">حدثنا عن أعراضك</h2>
+      <p class="stage-sub">أجب بصراحة ووضوح — الروبوت سيسأل أسئلة متابعة بناءً على إجاباتك.</p>
+    </div>
+
+    <div class="live-banner" id="liveBanner" style="display:none;" role="status" aria-live="polite">
+      <span class="ring" aria-hidden="true"></span>
+      <span id="liveBannerText">وضع المحادثة الصوتية مفعّل — المايكروفون يفتح تلقائياً بعد كل سؤال</span>
+    </div>
+
+    <div class="speaking-banner" id="speakingBanner"
+      role="button" tabindex="0"
+      aria-label="الروبوت يتحدث الآن — اضغط هنا أو Enter لمقاطعته"
+      title="اضغط لمقاطعة الروبوت">
+      <span class="ring" aria-hidden="true"></span>
+      <span>🔊 الروبوت يتحدث الآن — اضغط هنا لمقاطعته</span>
+    </div>
+
+    <div class="auto-listen-banner" id="autoListenBanner" role="status" aria-live="assertive">
+      <span class="ring" aria-hidden="true"></span>
+      <span>🎙 المايكروفون مفتوح — تحدث الآن...</span>
+    </div>
+
+    <div class="chat-wrap" role="group" aria-labelledby="chatTitle">
+      <div class="chat-log" id="chatLog"
+        role="log"
+        aria-live="polite"
+        aria-label="سجل المحادثة"
+        aria-relevant="additions"
+        tabindex="0">
+      </div>
+      <div class="chat-input-row" role="group" aria-label="إرسال رسالة">
+        <button class="round-btn mic-btn" id="micBtn"
+          title="تسجيل صوتي / مقاطعة"
+          aria-label="تسجيل صوتي"
+          aria-pressed="false"
+          style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/>
+          </svg>
+          <span class="sr-only" id="micStatus">غير نشط</span>
+        </button>
+        <label for="chatInput" class="sr-only">اكتب رسالتك</label>
+        <textarea id="chatInput" placeholder="اكتب إجابتك هنا..." rows="1"
+          aria-label="اكتب إجابتك"
+          aria-describedby="chatInputHint"></textarea>
+        <span id="chatInputHint" class="sr-only">اضغط Enter للإرسال، أو Shift+Enter لسطر جديد</span>
+        <button class="round-btn send-btn" id="sendBtn" title="إرسال" aria-label="إرسال الرسالة">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="stage-actions">
+      <button class="btn btn-ghost" id="chatBackBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        السابق
+      </button>
+      <button class="btn btn-primary" id="chatNextBtn" disabled aria-disabled="true">
+        متابعة لتحديد موضع الألم
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- STAGE 3: 3D body model -->
+  <section class="stage" id="stage-body"
+    aria-labelledby="bodyTitle"
+    role="region">
+    <div class="stage-head">
+      <p class="stage-eyebrow" aria-hidden="true">تحديد موضع الألم</p>
+      <h2 class="stage-title" id="bodyTitle">حدد مكان الألم بدقة</h2>
+      <p class="stage-sub">استعن بالمجسم ثلاثي الأبعاد لمعرفة اسم المنطقة، ثم اكتب وصف موضع الألم في الحقل (إلزامي).</p>
+    </div>
+
+    <div class="body-stage-grid">
+      <div class="model-frame-wrap" id="modelFrameWrap">
+        <div class="model-loading" id="modelLoading" role="status" aria-live="polite">
+          <div class="spinner" aria-hidden="true"></div>
+          <span>جاري تحميل المجسم ثلاثي الأبعاد...</span>
+        </div>
+        <iframe id="bodyIframe"
+          allow="autoplay; fullscreen; xr-spatial-tracking"
+          allowfullscreen
+          title="مجسم جسم الإنسان ثلاثي الأبعاد — استخدمه لتحديد موضع الألم"
+          aria-label="مجسم جسم الإنسان التشريحي"
+          tabindex="0"></iframe>
+      </div>
+
+      <div class="pain-panel" role="group" aria-labelledby="bodyTitle">
+        <div class="pain-card">
+          <h4 id="systemLabelTitle">النظام التشريحي المعروض</h4>
+          <p style="font-size:.85rem; color:var(--ink-soft); font-weight:600;"
+            id="systemLabel" aria-labelledby="systemLabelTitle">الجهاز الهيكلي</p>
+        </div>
+
+        <div class="pain-card">
+          <h4 id="painInputLabel">أين تشعر بالألم؟ <span style="color:var(--danger); font-weight:800;" aria-hidden="true">* إلزامي</span></h4>
+          <div class="field" style="margin-bottom:10px;">
+            <label for="paintedArea" class="sr-only">وصف موضع الألم</label>
+            <input type="text" id="paintedArea"
+              placeholder="مثال: الكتف الأيسر، أسفل الظهر..."
+              aria-labelledby="painInputLabel"
+              aria-describedby="paintedAreaHint"
+              aria-required="true">
+            <p class="hint" id="paintedAreaHint" style="margin-top:6px;">استعن بأسماء المناطق الظاهرة على المجسم للوصف بدقة. اضغط Enter أو زر الإضافة لتسجيل الموضع.</p>
+          </div>
+          <button class="btn btn-ghost" id="addPainBtn" style="width:100%;"
+            aria-label="إضافة موضع الألم المكتوب في الحقل">+ إضافة موضع الألم</button>
+        </div>
+
+        <div class="pain-card">
+          <h4 id="painListLabel">المواضع المسجّلة</h4>
+          <div class="pain-list" id="painList"
+            role="list"
+            aria-labelledby="painListLabel"
+            aria-live="polite">
+            <p class="pain-empty" role="listitem">لم تتم إضافة أي موضع بعد — مطلوب موضع واحد على الأقل للمتابعة.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage-actions">
+      <button class="btn btn-ghost" id="bodyBackBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        السابق
+      </button>
+      <button class="btn btn-primary" id="bodyNextBtn">
+        متابعة
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- STAGE 4: optional image upload -->
+  <section class="stage" id="stage-images"
+    aria-labelledby="imagesTitle"
+    role="region">
+    <div class="stage-head">
+      <p class="stage-eyebrow" aria-hidden="true">اختياري</p>
+      <h2 class="stage-title" id="imagesTitle">هل لديك صور طبية تريد إرفاقها؟</h2>
+      <p class="stage-sub">صور أشعة، صور مقطعية، أو صور عادية. هذه الخطوة اختيارية ويمكنك تخطيها.</p>
+    </div>
+
+    <div class="upload-card" id="uploadCard"
+      role="button" tabindex="0"
+      aria-label="اضغط لرفع صور طبية. يقبل JPG و PNG"
+      aria-describedby="uploadDesc">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <p>اضغط هنا لرفع صورة أو أكثر</p>
+      <span id="uploadDesc">JPG, PNG — سيتم إرفاقها في تقرير PDF للطبيب.</span>
+    </div>
+    <input type="file" id="imageFileInput" accept="image/*" multiple
+      style="display:none;"
+      aria-label="رفع صور طبية">
+    <div class="upload-thumbs" id="uploadThumbs" role="list" aria-label="الصور المرفوعة" aria-live="polite"></div>
+
+    <div class="stage-actions">
+      <button class="btn btn-ghost" id="imagesBackBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        السابق
+      </button>
+      <button class="btn btn-primary" id="imagesNextBtn">
+        إنهاء وعرض الملخص
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- STAGE 5: summary + email/PDF -->
+  <section class="stage" id="stage-summary"
+    aria-labelledby="summaryTitle"
+    role="region">
+    <div class="stage-head">
+      <p class="stage-eyebrow" aria-hidden="true">التقرير النهائي</p>
+      <h2 class="stage-title" id="summaryTitle">ملخص الفرز الطبي</h2>
+      <p class="stage-sub">راجع المعلومات ثم أدخل بريدك الإلكتروني لإرسال التقرير كملف PDF.</p>
+    </div>
+
+    <div id="summaryContent" aria-live="polite"></div>
+
+    <div class="field full" style="margin-top:18px;">
+      <label for="reportEmail">البريد الإلكتروني لإرسال التقرير</label>
+      <input type="email" id="reportEmail" placeholder="example@email.com"
+        autocomplete="email"
+        aria-describedby="emailHint">
+      <p class="hint" id="emailHint">سيتم إرسال نسخة PDF كاملة إلى بريدك وحفظها في السجل الطبي.</p>
+    </div>
+
+    <div class="stage-actions">
+      <button class="btn btn-ghost" id="summaryBackBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        السابق
+      </button>
+      <button class="btn btn-primary" id="sendReportBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+        إرسال التقرير وحفظه
+      </button>
+    </div>
+  </section>
+
+  </main><!-- /main -->
+
+  <footer class="footer-note" role="contentinfo">
+    © 2026 NABD Robot — هذا الفرز لا يغني عن استشارة طبيب مختص.
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="alert" aria-live="assertive" aria-atomic="true"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="config.js"></script>
+<script>
+/* ==========================================================
+   CONFIG
+   ========================================================== */
+const CONFIG = {
+  GROQ_API_KEY: (window.NABD_CONFIG && window.NABD_CONFIG.GROQ_API_KEY) || '',
+  GROQ_MODELS: [
+    "openai/gpt-oss-120b",     // الأساسي
+    "openai/gpt-oss-20b",      // احتياطي أسرع
+    "llama-3.3-70b-versatile"  // احتياطي أخير
+  ],
+};
+
+let ACTIVE_MODEL = null; // يُثبَّت على أول موديل ينجح
+
+const BODY_MODELS = {
+  skeletal:    { male:"https://human.biodigital.com/view?id=production/maleAdult/male_system_skeletal_20&lang=en", female:"https://human.biodigital.com/view?id=production/femaleAdult/female_system_skeletal_20&lang=en", label:"الجهاز الهيكلي" },
+  muscular:    { male:"https://human.biodigital.com/view?id=production/maleAdult/male_system_muscular_20&lang=en", female:"https://human.biodigital.com/view?id=production/femaleAdult/female_system_muscular_20&lang=en&ref=share", label:"الجهاز العضلي" },
+  circulatory: { male:"https://human.biodigital.com/view?id=production/maleAdult/male_system_cardiovascular_20&lang=en&ref=share", female:"https://human.biodigital.com/view?id=production/femaleAdult/female_system_cardiovascular_20&lang=en&ref=share", label:"الجهاز الدوري" },
+  respiratory: { male:"https://human.biodigital.com/view?id=production/maleAdult/male_system_respiratory_20&lang=en&ref=share", female:"https://human.biodigital.com/view?id=production/femaleAdult/female_system_respiratory_20&lang=en&ref=share", label:"الجهاز التنفسي" },
+  nervous:     { male:"https://human.biodigital.com/view?id=production/maleAdult/male_system_nervous_20&lang=en&ref=share", female:"https://human.biodigital.com/view?id=production/femaleAdult/female_system_nervous_20&lang=en&ref=share", label:"الجهاز العصبي" },
+  digestive:   { male:"https://human.biodigital.com/view?id=production/maleAdult/male_system_digestive_20&lang=en&ref=share", female:"https://human.biodigital.com/view?id=production/femaleAdult/female_system_digestive_20&lang=en&ref=share", label:"الجهاز الهضمي" },
+  endocrine:   { male:"https://human.biodigital.com/view?id=production/maleAdult/male_system_endocrine_20&lang=en&ref=share", female:"https://human.biodigital.com/view?id=production/femaleAdult/female_system_endocrine_20&lang=en&ref=share", label:"الجهاز الصمّاوي (الغدد)" },
+  lymphatic:   { male:"https://human.biodigital.com/view?id=production/maleAdult/male_system_lymphatic_20&lang=en&ref=share", female:"https://human.biodigital.com/view?id=production/femaleAdult/female_system_lymphatic_20&lang=en&ref=share", label:"الجهاز اللمفاوي" },
+};
+
+/* ==========================================================
+   ACCESSIBILITY HELPERS
+   ========================================================== */
+
+/** Announce a message to screen readers immediately */
+function announce(msg, polite = false) {
+  const el = document.getElementById(polite ? 'a11yPolite' : 'a11yAnnouncer');
+  if (!el) return;
+  el.textContent = '';
+  requestAnimationFrame(() => { el.textContent = msg; });
+}
+
+/** Move focus to an element safely */
+function focusEl(selector) {
+  const el = typeof selector === 'string' ? document.querySelector(selector) : selector;
+  if (!el) return;
+  el.setAttribute('tabindex', el.tabIndex < 0 ? '-1' : el.tabIndex);
+  el.focus({ preventScroll: false });
+}
+
+/* ==========================================================
+   FONT SIZE CONTROL (for low-vision users)
+   ========================================================== */
+let currentFontSize = 16;
+document.getElementById('fontIncBtn').addEventListener('click', () => {
+  currentFontSize = Math.min(currentFontSize + 2, 26);
+  document.documentElement.style.fontSize = currentFontSize + 'px';
+  announce(`حجم الخط: ${currentFontSize} نقطة`, true);
+});
+document.getElementById('fontDecBtn').addEventListener('click', () => {
+  currentFontSize = Math.max(currentFontSize - 2, 12);
+  document.documentElement.style.fontSize = currentFontSize + 'px';
+  announce(`حجم الخط: ${currentFontSize} نقطة`, true);
+});
+
+/* ==========================================================
+   STATE
+   ========================================================== */
+const state = {
+  mode: null,
+  step: 0,
+  patient: { name:"", age:"", gender:"", phone:"", city:"", history:"" },
+  chatMessages: [],
+  selectedSystem: "skeletal",
+  painPoints: [],
+  uploadedImages: [],
+  aiSummary: null,
+  translated: null,
+};
+
+const STEP_LABELS = [
+  "الخطوة ١ من ٦ · طريقة التواصل",
+  "الخطوة ٢ من ٦ · المعلومات الشخصية",
+  "الخطوة ٣ من ٦ · الفرز الطبي بالذكاء الاصطناعي",
+  "الخطوة ٤ من ٦ · تحديد موضع الألم",
+  "الخطوة ٥ من ٦ · صور طبية (اختياري)",
+  "الخطوة ٦ من ٦ · التقرير النهائي",
+];
+
+const STEP_TITLES = [
+  "طريقة التواصل",
+  "المعلومات الشخصية",
+  "الفرز الطبي",
+  "موضع الألم",
+  "الصور الطبية",
+  "التقرير النهائي",
+];
+
+const stages = ["stage-mode","stage-personal","stage-chat","stage-body","stage-images","stage-summary"];
+
+function goToStep(n) {
+  state.step = n;
+  stages.forEach((id, i) => {
+    document.getElementById(id).classList.toggle("active", i === n);
+  });
+  document.querySelectorAll(".progress-seg").forEach((seg, i) => {
+    seg.classList.toggle("done", i < n);
+    seg.classList.toggle("active", i === n);
+  });
+  document.getElementById("progressLabel").textContent = STEP_LABELS[n];
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
+  announce(`انتقلت إلى ${STEP_TITLES[n]}. ${STEP_LABELS[n]}`);
+
+  requestAnimationFrame(() => {
+    const heading = document.querySelector(`#${stages[n]} .stage-title`);
+    if (heading) { heading.setAttribute('tabindex', '-1'); heading.focus(); }
+  });
+
+  if (n === 2 && state.chatMessages.length === 0) { startTriageChat(); }
+  if (n === 3) { loadBodyModel(); }
+  if (n === 5) { enterSummaryStage(); }
+}
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById("toast");
+  const icon = isError
+    ? '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'
+    : '<path d="M20 6 9 17l-5-5"/>';
+  t.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg> ${msg}`;
+  t.style.background = isError ? "var(--danger)" : "var(--teal-900)";
+  t.classList.add("show");
+  announce(msg);
+  setTimeout(() => t.classList.remove("show"), 3200);
+}
+
+/* ==========================================================
+   إزالة واجهة الإيميل (لم تعد مستخدمة)
+   ========================================================== */
+const REPORT_BTN_HTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> تحميل التقرير PDF وحفظه`;
+
+(function removeEmailUI() {
+  const emailInput = document.getElementById("reportEmail");
+  if (emailInput) {
+    const wrap = emailInput.closest(".field");
+    if (wrap) wrap.remove(); else emailInput.remove();
+  }
+  const hint = document.getElementById("emailHint");
+  if (hint) hint.remove();
+
+  const sub = document.querySelector("#stage-summary .stage-sub");
+  if (sub) sub.textContent = "راجع المعلومات ثم حمّل التقرير كملف PDF واحفظه في السجل الطبي.";
+
+  const sendBtn = document.getElementById("sendReportBtn");
+  if (sendBtn) {
+    sendBtn.setAttribute("aria-label", "تحميل التقرير PDF وحفظه في السجل");
+    sendBtn.innerHTML = REPORT_BTN_HTML;
+  }
+})();
+
+/* ==========================================================
+   STAGE 0 — mode selection (accessible radio group)
+   ========================================================== */
+const choiceCards = document.querySelectorAll(".choice-card");
+
+function selectMode(card) {
+  choiceCards.forEach(c => {
+    c.classList.remove("selected");
+    c.setAttribute("aria-checked", "false");
+    c.setAttribute("tabindex", "-1");
+  });
+  card.classList.add("selected");
+  card.setAttribute("aria-checked", "true");
+  card.setAttribute("tabindex", "0");
+  state.mode = card.dataset.mode;
+  const modeNextBtn = document.getElementById("modeNextBtn");
+  modeNextBtn.disabled = false;
+  modeNextBtn.removeAttribute("aria-disabled");
+  document.getElementById("voiceHint").style.display = state.mode === "voice" ? "block" : "none";
+  announce(`تم اختيار: ${card.querySelector('h3').textContent}`);
+}
+
+choiceCards.forEach((card, i) => {
+  card.setAttribute("tabindex", i === 0 ? "0" : "-1");
+  card.addEventListener("click", () => selectMode(card));
+  card.addEventListener("keydown", e => {
+    if (e.key === " " || e.key === "Enter") {
+      e.preventDefault();
+      selectMode(card);
+    }
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      e.preventDefault();
+      const cards = [...choiceCards];
+      const next = cards[(cards.indexOf(card) + 1) % cards.length];
+      next.focus();
+      selectMode(next);
+    }
+    if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const cards = [...choiceCards];
+      const prev = cards[(cards.indexOf(card) - 1 + cards.length) % cards.length];
+      prev.focus();
+      selectMode(prev);
+    }
+  });
+});
+
+document.getElementById("modeNextBtn").addEventListener("click", () => {
+  if (state.mode === "voice" && !("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
+    showToast("المتصفح لا يدعم التعرف الصوتي، سيتم التحويل إلى وضع الكتابة", true);
+    state.mode = "text";
+  }
+  goToStep(1);
+});
+
+/* ==========================================================
+   STAGE 1 — personal info (with validation)
+   ========================================================== */
+function setGender(gender) {
+  ['genderMale','genderFemale'].forEach(id => {
+    const btn = document.getElementById(id);
+    const isSelected = btn.dataset.gender === gender;
+    btn.classList.toggle("selected", isSelected);
+    btn.setAttribute("aria-pressed", String(isSelected));
+  });
+  state.patient.gender = gender;
+  document.getElementById("genderError").style.display = "none";
+}
+
+document.getElementById("genderMale").addEventListener("click", () => setGender("male"));
+document.getElementById("genderFemale").addEventListener("click", () => setGender("female"));
+
+function validatePersonal() {
+  let valid = true;
+  const name = document.getElementById("pName").value.trim();
+  const age = document.getElementById("pAge").value.trim();
+
+  const fieldName = document.getElementById("fieldName");
+  if (!name) { fieldName.classList.add("has-error"); valid = false; }
+  else { fieldName.classList.remove("has-error"); }
+
+  const fieldAge = document.getElementById("fieldAge");
+  if (!age) { fieldAge.classList.add("has-error"); valid = false; }
+  else { fieldAge.classList.remove("has-error"); }
+
+  const genderError = document.getElementById("genderError");
+  if (!state.patient.gender) { genderError.style.display = "block"; valid = false; }
+  else { genderError.style.display = "none"; }
+
+  if (!valid) {
+    announce("يوجد حقول مطلوبة غير مكتملة. الرجاء مراجعتها.");
+    if (!name) focusEl('#pName');
+    else if (!age) focusEl('#pAge');
+    else focusEl('#genderMale');
+  }
+  return valid;
+}
+
+document.getElementById("personalBackBtn").addEventListener("click", () => goToStep(0));
+document.getElementById("personalNextBtn").addEventListener("click", () => {
+  state.patient.name    = document.getElementById("pName").value.trim();
+  state.patient.age     = document.getElementById("pAge").value.trim();
+  state.patient.phone   = document.getElementById("pPhone").value.trim();
+  state.patient.city    = document.getElementById("pCity").value.trim();
+  state.patient.history = document.getElementById("pHistory").value.trim();
+
+  if (!validatePersonal()) return;
+  goToStep(2);
+});
+
+/* ==========================================================
+   STAGE 2 — AI triage chat
+   ========================================================== */
+const chatLog   = document.getElementById("chatLog");
+const chatInput = document.getElementById("chatInput");
+const sendBtn   = document.getElementById("sendBtn");
+const micBtn    = document.getElementById("micBtn");
+
+const SYSTEM_PROMPT = `
+أنت "نبض"، مساعد فرز طبي ذكي متخصص في جمع المعلومات السريرية الأولية بدقة قبل وصول المريض للطبيب.
+
+معلومات المريض:
+الاسم: {name}
+العمر: {age}
+الجنس: {gender}
+التاريخ المرضي: {history}
+
+القواعد الأساسية:
+1. هدفك ليس التشخيص النهائي بل جمع المعلومات السريرية الكافية والمفيدة فعلياً للطبيب.
+2. اسأل سؤالاً واحداً فقط في كل رسالة.
+3. للحالات البسيطة 4-7 أسئلة تكفي، وسّع فقط إذا كانت الأعراض غامضة.
+4. الأسئلة تكيفية — كل إجابة تحدد السؤال التالي.
+5. ابحث دائماً عن علامات الخطر: ألم الصدر، ضيق التنفس، فقدان الوعي، ضعف مفاجئ، تشنجات، نزيف شديد. إذا ظهرت: انصح بالتوجه للطوارئ فوراً.
+6. لا تشخص بشكل قاطع أبداً.
+7. لا تكتب أي تفكير داخلي أو مقدمات — اكتب نص الرسالة الموجهة للمريض فقط.
+8. بمجرد أن تصبح المعلومات كافية، أرسل رسالة تبدأ حصراً بـ "###READY###" يليها JSON:
+###READY### {"system":"skeletal|muscular|circulatory|respiratory|nervous|digestive|endocrine|lymphatic"}
+9. تحدث بالعربية الفصحى المبسطة، وكن مختصراً ومباشراً.
+`;
+
+const FINAL_ANALYSIS_PROMPT = `
+أنت في مرحلة التحليل النهائي لنظام "نبض". لديك المحادثة الكاملة مع المريض ومواضع الألم.
+
+معلومات المريض:
+الاسم: {name}
+العمر: {age}
+الجنس: {gender}
+التاريخ المرضي: {history}
+
+موضع/مواضع الألم:
+{painPoints}
+
+عدد الصور الطبية المرفقة: {imageCount}
+
+أرسل فقط كائن JSON (بدون أي نص قبله أو بعده، وبدون علامات markdown)، جميع القيم النصية بالإنجليزية:
+{
+  "system":"skeletal|muscular|circulatory|respiratory|nervous|digestive|endocrine|lymphatic",
+  "affectedArea":"Specific area affected in English",
+  "severity":"low|medium|high",
+  "confidence":0.0,
+  "possibleConditions":["Condition 1","Condition 2","Condition 3"],
+  "rareConditionConsidered":"Rare condition or empty string",
+  "redFlags":["Red flag if any"],
+  "needsImaging":true,
+  "imagingType":"X-Ray|CT|MRI|Ultrasound|None",
+  "needsLabTests":true,
+  "recommendedTests":["CBC","CRP"],
+  "notes":"Summary for physician in English",
+  "painPointsEnglish":["English translation of pain location"],
+  "chronicHistoryEnglish":"English translation of chronic conditions or None"
+}
+`;
+
+function addMsg(role, text, isTyping = false) {
+  const div = document.createElement("div");
+  div.className = `msg ${role === 'assistant' ? 'bot' : 'user'}${isTyping ? ' typing' : ''}`;
+
+  if (isTyping) {
+    div.setAttribute('aria-label', 'الروبوت يكتب...');
+    div.setAttribute('aria-busy', 'true');
+    div.innerHTML = "<span aria-hidden='true'></span><span aria-hidden='true'></span><span aria-hidden='true'></span>";
+  } else {
+    div.textContent = text;
+    div.setAttribute('role', 'listitem');
+    div.setAttribute('aria-label', (role === 'assistant' ? 'نبض: ' : 'أنت: ') + text);
+  }
+
+  chatLog.appendChild(div);
+  chatLog.scrollTop = chatLog.scrollHeight;
+  return div;
+}
+
+/* ==========================================================
+   GROQ API — موديل جديد مع سلسلة احتياطية
+   ========================================================== */
+
+/** تنظيف مخرجات موديلات التفكير (gpt-oss / qwen) */
+function cleanModelOutput(txt) {
+  return (txt || "")
+    .replace(/<think>[\s\S]*?<\/think>/gi, "")
+    .replace(/<\|channel\|>[\s\S]*?<\|message\|>/gi, "")
+    .replace(/<\|[a-z_]+\|>/gi, "")
+    .trim();
+}
+
+async function callGroq(messages, opts = {}) {
+  // نبدأ بالموديل الذي نجح سابقاً، ثم البقية بالترتيب
+  const order = ACTIVE_MODEL
+    ? [ACTIVE_MODEL, ...CONFIG.GROQ_MODELS.filter(m => m !== ACTIVE_MODEL)]
+    : [...CONFIG.GROQ_MODELS];
+
+  let lastErr = null;
+
+  for (const model of order) {
+    try {
+      const body = {
+        model,
+        messages,
+        temperature: opts.temperature ?? 0.4,
+        max_completion_tokens: opts.maxTokens ?? 1200
+      };
+
+      // موديلات gpt-oss تفكيرية: نخفي التفكير حتى لا يفسد النص أو الـ JSON
+      if (model.startsWith("openai/gpt-oss")) {
+        body.reasoning_effort = "low";
+        body.reasoning_format = "hidden";
+      }
+
+      const resp = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${CONFIG.GROQ_API_KEY}`
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!resp.ok) {
+        const errText = await resp.text();
+        // موديل غير موجود أو غير مسموح لهذا الحساب → جرّب التالي
+        if (resp.status === 404 || (resp.status === 400 && /model/i.test(errText))) {
+          lastErr = new Error(`الموديل ${model} غير متاح`);
+          continue;
+        }
+        throw new Error(`Groq API error: ${resp.status} ${errText}`);
+      }
+
+      const data = await resp.json();
+      const content = cleanModelOutput(data?.choices?.[0]?.message?.content);
+      if (!content) { lastErr = new Error("رد فارغ من الموديل"); continue; }
+
+      ACTIVE_MODEL = model;
+      return content;
+
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+
+  throw lastErr || new Error("تعذّر الاتصال بخدمة Groq");
+}
+
+function buildSystemPrompt() {
+  return SYSTEM_PROMPT
+    .replace("{name}", state.patient.name)
+    .replace("{age}", state.patient.age)
+    .replace("{gender}", state.patient.gender === "male" ? "ذكر" : "أنثى")
+    .replace("{history}", state.patient.history || "لا يوجد");
+}
+
+function buildFinalAnalysisPrompt() {
+  const painText = state.painPoints.length
+    ? state.painPoints.map((p, i) => `${i + 1}. ${p}`).join("\n")
+    : "لم يصف المريض أي موضع ألم.";
+  return FINAL_ANALYSIS_PROMPT
+    .replace("{name}", state.patient.name)
+    .replace("{age}", state.patient.age)
+    .replace("{gender}", state.patient.gender === "male" ? "ذكر" : "أنثى")
+    .replace("{history}", state.patient.history || "لا يوجد")
+    .replace("{painPoints}", painText)
+    .replace("{imageCount}", String(state.uploadedImages.length));
+}
+
+async function startTriageChat() {
+  document.getElementById("liveBanner").style.display = state.mode === "voice" ? "flex" : "none";
+  micBtn.style.display = state.mode === "voice" ? "flex" : "none";
+
+  const typingEl = addMsg("assistant", "", true);
+  try {
+    const reply = await callGroq([
+      { role: "system", content: buildSystemPrompt() },
+      { role: "user", content: "ابدأ الآن بسؤالي عن سبب زيارتي اليوم وما هي الأعراض التي أشعر بها." }
+    ]);
+    typingEl.remove();
+    handleAssistantReply(reply);
+  } catch (err) {
+    typingEl.remove();
+    addMsg("assistant", "حدث خطأ بالاتصال مع خدمة التحليل. تأكد من إعداد مفتاح Groq API. (" + err.message + ")");
+  }
+}
+
+function handleAssistantReply(reply) {
+  if (reply.includes("###READY###")) {
+    const jsonStr = reply.split("###READY###")[1].trim();
+    try {
+      const match = jsonStr.match(/\{[\s\S]*\}/);
+      const parsed = JSON.parse(match ? match[0] : jsonStr);
+      state.selectedSystem = parsed.system && BODY_MODELS[parsed.system] ? parsed.system : "skeletal";
+      const msg = "شكراً، تم جمع المعلومات الكافية. اضغط على زر \"متابعة\" للانتقال لتحديد مكان الألم باستخدام المجسم التشريحي.";
+      addMsg("assistant", msg);
+      const nextBtn = document.getElementById("chatNextBtn");
+      nextBtn.disabled = false;
+      nextBtn.removeAttribute("aria-disabled");
+      chatInput.disabled = true;
+      sendBtn.disabled = true;
+      micBtn.disabled = true;
+      stopAutoListen();
+      if (state.mode === "voice") speakText(msg);
+      announce("اكتمل جمع المعلومات. يمكنك الآن الضغط على زر المتابعة.");
+    } catch (e) {
+      addMsg("assistant", reply.replace("###READY###", "").trim());
+    }
+  } else {
+    addMsg("assistant", reply);
+    state.chatMessages.push({ role: "assistant", content: reply });
+    if (state.mode === "voice" && !chatInput.disabled) {
+      if ("speechSynthesis" in window && reply.trim()) {
+        speakTextThenListen(reply);
+      } else {
+        autoListenAfterDelay();
+      }
+    }
+  }
+}
+
+async function sendUserMessage(text) {
+  if (!text.trim()) return;
+  addMsg("user", text);
+  state.chatMessages.push({ role: "user", content: text });
+  chatInput.value = "";
+  chatInput.style.height = "auto";
+
+  const typingEl = addMsg("assistant", "", true);
+  sendBtn.disabled = true;
+
+  try {
+    const messages = [
+      { role: "system", content: buildSystemPrompt() },
+      { role: "user", content: "ابدأ الآن بسؤالي عن سبب زيارتي اليوم وما هي الأعراض التي أشعر بها." },
+      ...state.chatMessages
+    ];
+    const reply = await callGroq(messages);
+    typingEl.remove();
+    handleAssistantReply(reply);
+  } catch (err) {
+    typingEl.remove();
+    addMsg("assistant", "حدث خطأ بالاتصال. حاول مرة أخرى. (" + err.message + ")");
+    if (state.mode === "voice" && !chatInput.disabled) {
+      autoListenAfterDelay();
+    }
+  }
+  sendBtn.disabled = false;
+}
+
+sendBtn.addEventListener("click", () => sendUserMessage(chatInput.value));
+chatInput.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendUserMessage(chatInput.value);
+  }
+});
+chatInput.addEventListener("input", function () {
+  this.style.height = "auto";
+  this.style.height = Math.min(this.scrollHeight, 120) + "px";
+});
+
+/* ==========================================================
+   VOICE — Web Speech API (with barge-in + accessibility)
+   ========================================================== */
+let recognition     = null;
+let isRecording     = false;
+let silenceTimer    = null;
+let autoListenTimer = null;
+let ttsActive       = false;
+let currentUtterance = null;
+let cachedVoices    = [];
+
+const MIC_START_DELAY_MS   = 900;
+const SILENCE_TIMEOUT_MS   = 18000;
+const AUTO_LISTEN_DELAY_MS = 1200;
+
+function playBeep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.2);
+  } catch (e) {}
+}
+
+function setupSpeechRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return null;
+  const rec = new SR();
+  rec.lang = "ar-SA";
+  rec.continuous = true;
+  rec.interimResults = false;
+
+  rec.onresult = (e) => {
+    let transcript = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) transcript += e.results[i][0].transcript;
+    }
+    if (!transcript.trim()) return;
+    clearTimeout(silenceTimer);
+    stopRecording();
+    sendUserMessage(transcript);
+  };
+
+  rec.onerror = (ev) => {
+    if (ev.error === "no-speech") { stopRecording(); return; }
+    if (ev.error === "not-allowed") {
+      showToast("لم يتم منح إذن الميكروفون. تحقق من إعدادات المتصفح.", true);
+    } else {
+      showToast("خطأ في التعرف الصوتي: " + ev.error, true);
+    }
+    stopRecording();
+  };
+
+  rec.onend = () => { if (isRecording) stopRecording(); };
+  return rec;
+}
+
+function setMicState(micState) {
+  micBtn.classList.toggle('recording', micState === 'recording');
+  micBtn.classList.toggle('speaking', micState === 'speaking');
+  const statusMap = { recording: 'يسجّل الآن — تحدث', speaking: 'الروبوت يتحدث — اضغط للمقاطعة', idle: 'تسجيل صوتي' };
+  micBtn.setAttribute('aria-label', statusMap[micState] || 'تسجيل صوتي');
+  micBtn.setAttribute('aria-pressed', micState === 'recording' ? 'true' : 'false');
+  document.getElementById('micStatus').textContent = statusMap[micState] || '';
+}
+
+function startRecording(isAuto = false) {
+  if (isRecording) return;
+  if (!recognition) recognition = setupSpeechRecognition();
+  if (!recognition) { showToast("المتصفح لا يدعم التعرف الصوتي", true); return; }
+
+  setTimeout(() => {
+    if (isRecording) return;
+    try {
+      recognition.start();
+      isRecording = true;
+      setMicState('recording');
+      if (isAuto) {
+        document.getElementById("autoListenBanner").classList.add("visible");
+        playBeep();
+        announce("المايكروفون مفتوح الآن، تحدث بعد صوت البيب");
+      } else {
+        announce("بدء التسجيل");
+      }
+      clearTimeout(silenceTimer);
+      silenceTimer = setTimeout(() => { if (isRecording) stopRecording(); }, SILENCE_TIMEOUT_MS);
+    } catch (e) {
+      try { recognition.stop(); } catch (ex) {}
+      recognition = null;
+      isRecording = false;
+    }
+  }, isAuto ? MIC_START_DELAY_MS : 30);
+}
+
+function stopRecording() {
+  clearTimeout(silenceTimer);
+  isRecording = false;
+  setMicState('idle');
+  document.getElementById("autoListenBanner").classList.remove("visible");
+  try { recognition && recognition.stop(); } catch (e) {}
+}
+
+function stopAutoListen() {
+  clearTimeout(autoListenTimer);
+  stopRecording();
+  document.getElementById("autoListenBanner").classList.remove("visible");
+  document.getElementById("speakingBanner").classList.remove("visible");
+}
+
+function autoListenAfterDelay() {
+  clearTimeout(autoListenTimer);
+  autoListenTimer = setTimeout(() => {
+    if (!chatInput.disabled && state.mode === "voice") {
+      startRecording(true);
+    }
+  }, AUTO_LISTEN_DELAY_MS);
+}
+
+function interruptSpeech() {
+  if (!ttsActive) return;
+  try { window.speechSynthesis.cancel(); } catch (e) {}
+  ttsActive = false;
+  currentUtterance = null;
+  setMicState('idle');
+  document.getElementById("speakingBanner").classList.remove("visible");
+  clearTimeout(autoListenTimer);
+  announce("تمت المقاطعة");
+  if (!chatInput.disabled && state.mode === "voice") {
+    startRecording(false);
+  }
+}
+
+document.getElementById("speakingBanner").addEventListener("click", interruptSpeech);
+document.getElementById("speakingBanner").addEventListener("keydown", e => {
+  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); interruptSpeech(); }
+});
+
+function pickArabicVoice() {
+  if (!("speechSynthesis" in window)) return null;
+  let voices = window.speechSynthesis.getVoices();
+  if (voices && voices.length) cachedVoices = voices;
+  voices = cachedVoices;
+  if (!voices || !voices.length) return null;
+  const arabicVoices = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith("ar"));
+  if (!arabicVoices.length) return null;
+  const preferredNames = ["google", "natural", "online", "microsoft"];
+  let best = arabicVoices.find(v => preferredNames.some(p => v.name.toLowerCase().includes(p)));
+  if (!best) best = arabicVoices.find(v => v.lang.toLowerCase() === "ar-sa") || arabicVoices[0];
+  return best;
+}
+
+if ("speechSynthesis" in window) {
+  window.speechSynthesis.onvoiceschanged = () => { cachedVoices = window.speechSynthesis.getVoices(); };
+  cachedVoices = window.speechSynthesis.getVoices();
+}
+
+function configureUtterance(text) {
+  const utter = new SpeechSynthesisUtterance(text);
+  const voice = pickArabicVoice();
+  if (voice) utter.voice = voice;
+  utter.lang = voice ? voice.lang : "ar-SA";
+  utter.rate = 0.93;
+  utter.pitch = 1.0;
+  utter.volume = 1.0;
+  return utter;
+}
+
+function speakTextThenListen(text) {
+  if (!("speechSynthesis" in window) || !text) { autoListenAfterDelay(); return; }
+  window.speechSynthesis.cancel();
+  ttsActive = true;
+  setMicState('speaking');
+  document.getElementById("speakingBanner").classList.add("visible");
+
+  const utter = configureUtterance(text);
+  currentUtterance = utter;
+
+  utter.onend = () => {
+    if (currentUtterance !== utter) return;
+    ttsActive = false;
+    setMicState('idle');
+    document.getElementById("speakingBanner").classList.remove("visible");
+    autoListenTimer = setTimeout(() => {
+      if (!chatInput.disabled && state.mode === "voice") startRecording(true);
+    }, MIC_START_DELAY_MS);
+  };
+
+  utter.onerror = () => {
+    if (currentUtterance !== utter) return;
+    ttsActive = false;
+    setMicState('idle');
+    document.getElementById("speakingBanner").classList.remove("visible");
+    autoListenAfterDelay();
+  };
+
+  const estimatedDuration = Math.max(text.length * 90, 2000);
+  setTimeout(() => {
+    if (ttsActive && currentUtterance === utter) {
+      ttsActive = false;
+      setMicState('idle');
+      document.getElementById("speakingBanner").classList.remove("visible");
+      autoListenAfterDelay();
+    }
+  }, estimatedDuration + 1500);
+
+  window.speechSynthesis.speak(utter);
+}
+
+function speakText(text) {
+  if (!("speechSynthesis" in window) || !text) return;
+  window.speechSynthesis.cancel();
+  ttsActive = true;
+  setMicState('speaking');
+  document.getElementById("speakingBanner").classList.add("visible");
+
+  const utter = configureUtterance(text);
+  currentUtterance = utter;
+  utter.onend = () => {
+    if (currentUtterance !== utter) return;
+    ttsActive = false;
+    setMicState('idle');
+    document.getElementById("speakingBanner").classList.remove("visible");
+  };
+  utter.onerror = utter.onend;
+  window.speechSynthesis.speak(utter);
+}
+
+micBtn.addEventListener("click", () => {
+  if (ttsActive) { interruptSpeech(); return; }
+  if (isRecording) { stopRecording(); announce("تم إيقاف التسجيل"); }
+  else { clearTimeout(autoListenTimer); startRecording(false); }
+});
+
+document.getElementById("chatBackBtn").addEventListener("click", () => {
+  stopAutoListen(); interruptSpeech(); goToStep(1);
+});
+document.getElementById("chatNextBtn").addEventListener("click", () => {
+  stopAutoListen(); goToStep(3);
+});
+
+/* ==========================================================
+   STAGE 3 — 3D body model + pain description
+   ========================================================== */
+function loadBodyModel() {
+  const sys = BODY_MODELS[state.selectedSystem] || BODY_MODELS.skeletal;
+  const url = state.patient.gender === "female" ? sys.female : sys.male;
+  document.getElementById("systemLabel").textContent = sys.label;
+  document.getElementById("modelLoading").style.display = "flex";
+  const iframe = document.getElementById("bodyIframe");
+  iframe.onload = () => {
+    document.getElementById("modelLoading").style.display = "none";
+    announce(`تم تحميل مجسم ${sys.label}. استخدم الحقل أدناه لوصف موضع الألم.`, true);
+  };
+  iframe.src = url;
+  renderPainList();
+}
+
+function renderPainList() {
+  const list = document.getElementById("painList");
+  if (state.painPoints.length === 0) {
+    list.innerHTML = `<p class="pain-empty" role="listitem">لم تتم إضافة أي موضع بعد — مطلوب موضع واحد على الأقل للمتابعة.</p>`;
+    return;
+  }
+  list.innerHTML = state.painPoints.map((p, i) => `
+    <div class="pain-chip" role="listitem">
+      <span>${p}</span>
+      <button data-idx="${i}" class="removePainBtn"
+        aria-label="إزالة موضع الألم: ${p}">×</button>
+    </div>
+  `).join("");
+  list.querySelectorAll(".removePainBtn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const removed = state.painPoints[parseInt(btn.dataset.idx)];
+      state.painPoints.splice(parseInt(btn.dataset.idx), 1);
+      renderPainList();
+      announce(`تمت إزالة: ${removed}`);
+      if (state.painPoints.length === 0) focusEl('#paintedArea');
+    });
+  });
+}
+
+document.getElementById("addPainBtn").addEventListener("click", () => {
+  const input = document.getElementById("paintedArea");
+  const val = input.value.trim();
+  if (!val) {
+    showToast("اكتب وصف موضع الألم أولاً", true);
+    focusEl('#paintedArea');
+    return;
+  }
+  state.painPoints.push(val);
+  input.value = "";
+  renderPainList();
+  announce(`تمت إضافة موضع الألم: ${val}. إجمالي المواضع: ${state.painPoints.length}`);
+  focusEl('#paintedArea');
+});
+
+document.getElementById("paintedArea").addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); document.getElementById("addPainBtn").click(); }
+});
+
+document.getElementById("bodyBackBtn").addEventListener("click", () => goToStep(2));
+document.getElementById("bodyNextBtn").addEventListener("click", () => {
+  if (state.painPoints.length === 0) {
+    showToast("وصف موضع الألم إلزامي — أضف موضعاً واحداً على الأقل للمتابعة", true);
+    focusEl('#paintedArea');
+    return;
+  }
+  goToStep(4);
+});
+
+/* ==========================================================
+   STAGE 4 — image upload
+   ========================================================== */
+const uploadCard     = document.getElementById("uploadCard");
+const imageFileInput = document.getElementById("imageFileInput");
+const uploadThumbs   = document.getElementById("uploadThumbs");
+
+function triggerUpload() { imageFileInput.click(); }
+uploadCard.addEventListener("click", triggerUpload);
+uploadCard.addEventListener("keydown", e => {
+  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); triggerUpload(); }
+});
+
+imageFileInput.addEventListener("change", async (e) => {
+  const files = Array.from(e.target.files || []);
+  let added = 0;
+  for (const file of files) {
+    if (!file.type.startsWith("image/")) continue;
+    try {
+      const dataUrl = await fileToDataURL(file);
+      state.uploadedImages.push({ name: file.name, dataUrl });
+      added++;
+    } catch (err) {
+      showToast("تعذّر تحميل إحدى الصور", true);
+    }
+  }
+  imageFileInput.value = "";
+  renderUploadThumbs();
+  if (added > 0) announce(`تمت إضافة ${added} صورة. إجمالي الصور: ${state.uploadedImages.length}`);
+});
+
+function fileToDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderUploadThumbs() {
+  if (state.uploadedImages.length === 0) { uploadThumbs.innerHTML = ""; return; }
+  uploadThumbs.innerHTML = state.uploadedImages.map((img, i) => `
+    <div class="upload-thumb" role="listitem">
+      <img src="${img.dataUrl}" alt="صورة طبية ${i + 1}: ${img.name}">
+      <button class="thumb-remove" data-idx="${i}"
+        aria-label="إزالة الصورة: ${img.name}">×</button>
+    </div>
+  `).join("");
+  uploadThumbs.querySelectorAll(".thumb-remove").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const removed = state.uploadedImages[parseInt(btn.dataset.idx)].name;
+      state.uploadedImages.splice(parseInt(btn.dataset.idx), 1);
+      renderUploadThumbs();
+      announce(`تمت إزالة الصورة: ${removed}`);
+    });
+  });
+}
+
+document.getElementById("imagesBackBtn").addEventListener("click", () => goToStep(3));
+document.getElementById("imagesNextBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("imagesNextBtn");
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.setAttribute('aria-busy', 'true');
+  btn.textContent = "جاري تحليل الحالة...";
+  announce("جاري تحليل البيانات، يرجى الانتظار...");
+  try {
+    await runFinalAnalysis();
+    goToStep(5);
+  } catch (err) {
+    showToast("تعذّر إتمام التحليل النهائي. حاول مرة أخرى. (" + err.message + ")", true);
+  }
+  btn.disabled = false;
+  btn.removeAttribute('aria-busy');
+  btn.innerHTML = originalHTML;
+});
+
+/* ==========================================================
+   FINAL ANALYSIS
+   ========================================================== */
+async function runFinalAnalysis() {
+  const messages = [
+    { role: "system", content: buildFinalAnalysisPrompt() },
+    {
+      role: "user", content:
+        "هذا نص المحادثة الكاملة مع المريض:\n\n" +
+        state.chatMessages.map(m => (m.role === "user" ? "المريض: " : "نبض: ") + m.content).join("\n") +
+        "\n\nبناءً على هذه المحادثة ووصف موضع الألم، أرسل التحليل النهائي بصيغة JSON."
+    }
+  ];
+  const reply = await callGroq(messages, { temperature: 0.2, maxTokens: 1600 });
+  let cleaned = reply.trim();
+  if (cleaned.includes("```")) cleaned = cleaned.replace(/```json|```/g, "").trim();
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error("لم يتم استلام نتيجة صالحة من خدمة التحليل");
+  const parsed = JSON.parse(jsonMatch[0]);
+  state.aiSummary = parsed;
+  if (parsed.system && BODY_MODELS[parsed.system]) state.selectedSystem = parsed.system;
+}
+
+async function enterSummaryStage() {
+  if (state.aiSummary) { renderSummary(); return; }
+  document.getElementById("summaryContent").innerHTML = `
+    <div class="summary-card" style="text-align:center; padding:40px 20px;" role="status" aria-live="polite">
+      <p style="font-weight:700; color:var(--ink-soft);">جاري إعداد التقرير النهائي...</p>
+    </div>`;
+  try {
+    await runFinalAnalysis();
+    renderSummary();
+  } catch (err) {
+    document.getElementById("summaryContent").innerHTML = `
+      <div class="summary-card" style="text-align:center; padding:40px 20px;">
+        <p style="font-weight:700; color:var(--danger);" role="alert">تعذّر إعداد التحليل النهائي. (${err.message})</p>
+      </div>`;
+  }
+}
+
+/* ==========================================================
+   STAGE 5 — summary + PDF (بدون إرسال بريد)
+   ========================================================== */
+function severityBadge(sev) {
+  const map = {
+    low:    { cls: "severity-low",  label: "بسيطة" },
+    medium: { cls: "severity-mid",  label: "متوسطة" },
+    high:   { cls: "severity-high", label: "عالية — يُنصح بزيارة الطوارئ" },
+  };
+  const s = map[sev] || map.low;
+  return `<span class="severity-badge ${s.cls}" role="status">${s.label}</span>`;
+}
+
+function renderSummary() {
+  const ai  = state.aiSummary || {};
+  const sys = BODY_MODELS[state.selectedSystem] || BODY_MODELS.skeletal;
+  const confidencePct = typeof ai.confidence === "number" ? Math.round(ai.confidence * 100) : null;
+
+  const sevMap = { low:"بسيطة", medium:"متوسطة", high:"عالية — يُنصح بزيارة الطوارئ" };
+  announce(`تقرير الفرز جاهز. مستوى الخطورة: ${sevMap[ai.severity] || 'غير محدد'}`);
+
+  const html = `
+    <div class="summary-card" role="region" aria-label="المعلومات الشخصية">
+      <h4>المعلومات الشخصية</h4>
+      <div class="summary-row"><span>الاسم</span><span>${state.patient.name}</span></div>
+      <div class="summary-row"><span>العمر</span><span>${state.patient.age}</span></div>
+      <div class="summary-row"><span>الجنس</span><span>${state.patient.gender === 'male' ? 'ذكر' : 'أنثى'}</span></div>
+      <div class="summary-row"><span>المدينة</span><span>${state.patient.city || '-'}</span></div>
+      <div class="summary-row"><span>أمراض/أدوية</span><span>${state.patient.history || 'لا يوجد'}</span></div>
+    </div>
+    <div class="summary-card" role="region" aria-label="مواضع الألم">
+      <h4>وصف موضع/مواضع الألم</h4>
+      ${state.painPoints.map(p => `<div class="summary-row"><span aria-hidden="true">•</span><span>${p}</span></div>`).join("")}
+    </div>
+    <div class="summary-card" role="region" aria-label="نتيجة الفرز الطبي">
+      <h4>نتيجة الفرز الطبي</h4>
+      <div class="summary-row"><span>الجهاز التشريحي</span><span>${sys.label}</span></div>
+      ${ai.affectedArea ? `<div class="summary-row"><span>المنطقة المصابة (تقديري)</span><span>${ai.affectedArea}</span></div>` : ''}
+      <div class="summary-row"><span>مستوى الخطورة</span><span>${severityBadge(ai.severity)}</span></div>
+      ${confidencePct !== null ? `<div class="summary-row"><span>درجة الثقة</span><span>${confidencePct}%</span></div>` : ''}
+      <div class="summary-row"><span>الاحتمالات الممكنة</span><span>${(ai.possibleConditions || []).join("، ") || '-'}</span></div>
+      ${ai.rareConditionConsidered ? `<div class="summary-row"><span>احتمال نادر</span><span>${ai.rareConditionConsidered}</span></div>` : ''}
+      ${(ai.redFlags && ai.redFlags.length) ? `<div class="summary-row"><span>علامات خطورة</span><span style="color:var(--danger); font-weight:800;" role="alert">${ai.redFlags.join("، ")}</span></div>` : ''}
+      <div class="summary-row"><span>هل يتطلب أشعة؟</span><span>${ai.needsImaging ? ('نعم' + (ai.imagingType ? ' — ' + ai.imagingType : '')) : 'لا'}</span></div>
+      <div class="summary-row"><span>هل يتطلب فحوصات مخبرية؟</span><span>${ai.needsLabTests ? ('نعم' + ((ai.recommendedTests && ai.recommendedTests.length) ? ' — ' + ai.recommendedTests.join("، ") : '')) : 'لا'}</span></div>
+      <div class="summary-row"><span>ملاحظات</span><span>${ai.notes || '-'}</span></div>
+    </div>
+    ${state.uploadedImages.length ? `
+    <div class="summary-card" role="region" aria-label="الصور الطبية المرفقة">
+      <h4>الصور الطبية المرفقة (${state.uploadedImages.length})</h4>
+      <div class="upload-thumbs" role="list">
+        ${state.uploadedImages.map((img, i) => `<div class="upload-thumb" role="listitem"><img src="${img.dataUrl}" alt="صورة طبية ${i + 1}: ${img.name}"></div>`).join("")}
+      </div>
+      <p class="hint">سيتم إرفاق هذه الصور في ملف PDF دون تحليل آلي.</p>
+    </div>` : ''}
+  `;
+  document.getElementById("summaryContent").innerHTML = html;
+}
+
+document.getElementById("summaryBackBtn").addEventListener("click", () => goToStep(4));
+
+const SYSTEM_LABEL_EN = {
+  skeletal:"Skeletal System", muscular:"Muscular System", circulatory:"Circulatory System",
+  respiratory:"Respiratory System", nervous:"Nervous System", digestive:"Digestive System",
+  endocrine:"Endocrine System", lymphatic:"Lymphatic System"
+};
+const SEVERITY_LABEL_EN = { low:"Low", medium:"Medium", high:"High - Emergency care advised" };
+
+async function translateFieldsToEnglish() {
+  const payload = {
+    name: state.patient.name || "",
+    city: state.patient.city || "",
+    history: state.patient.history || "",
+    painPoints: state.painPoints || []
+  };
+  const allEmpty = !payload.name && !payload.city && !payload.history && payload.painPoints.length === 0;
+  if (allEmpty) return payload;
+
+  const prompt = `Translate/transliterate the following patient data from Arabic to English for a medical report.
+- "name": transliterate into readable English letters.
+- "city": give the standard English name.
+- "history": translate into clear medical English (or "None" if empty).
+- "painPoints": translate each pain location into clear medical English.
+Respond with ONLY a valid JSON object, no extra text, no markdown:
+{"name":"...","city":"...","history":"...","painPoints":["...","..."]}
+
+Input data (JSON):
+${JSON.stringify(payload)}`;
+
+  try {
+    const reply = await callGroq([
+      { role: "system", content: "You are a precise medical translation assistant. Always respond with valid JSON only, never add commentary or markdown fences." },
+      { role: "user", content: prompt }
+    ], { temperature: 0.1, maxTokens: 800 });
+    let cleaned = reply.trim().replace(/```json|```/g, "").trim();
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (match) {
+      const parsed = JSON.parse(match[0]);
+      return {
+        name: parsed.name || payload.name,
+        city: parsed.city || payload.city,
+        history: parsed.history || payload.history,
+        painPoints: (Array.isArray(parsed.painPoints) && parsed.painPoints.length) ? parsed.painPoints : payload.painPoints
+      };
+    }
+  } catch (e) { console.error("Translation error:", e); }
+  return payload;
+}
+
+function generatePDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const ai = state.aiSummary || {};
+  const tr = state.translated || {};
+  const pageHeight = doc.internal.pageSize.height;
+  const marginLeft = 14;
+  const maxWidth = 182;
+  let y = 20;
+
+  function ensureSpace(lh) {
+    if (y + lh > pageHeight - 15) { doc.addPage(); y = 20; }
+  }
+  function writeLine(text, opts = {}) {
+    const size = opts.size || 10;
+    doc.setFontSize(size);
+    doc.setFont(undefined, opts.bold ? "bold" : "normal");
+    const lines = doc.splitTextToSize(text, maxWidth);
+    lines.forEach(line => {
+      ensureSpace(size / 2);
+      doc.text(line, marginLeft, y);
+      y += size * 0.6;
+    });
+  }
+  function sectionTitle(text) {
+    y += 4; ensureSpace(10);
+    doc.setFontSize(13); doc.setFont(undefined, "bold");
+    doc.setTextColor(15, 91, 86);
+    doc.text(text, marginLeft, y);
+    doc.setTextColor(0, 0, 0);
+    y += 7;
+  }
+
+  doc.setFontSize(18); doc.setFont(undefined, "bold");
+  doc.setTextColor(15, 91, 86);
+  doc.text("NABD Robot - Medical Triage Report", marginLeft, y);
+  doc.setTextColor(0, 0, 0);
+  y += 8;
+  doc.setFont(undefined, "normal"); doc.setFontSize(9);
+  doc.setTextColor(90, 90, 90);
+  doc.text(`Generated: ${new Date().toLocaleString("en-US")}`, marginLeft, y);
+  doc.setTextColor(0, 0, 0);
+  y += 4;
+  doc.setDrawColor(220, 220, 220);
+  doc.line(marginLeft, y, marginLeft + maxWidth, y);
+  y += 8;
+
+  const nameEn    = tr.name    || state.patient.name;
+  const cityEn    = tr.city    || state.patient.city || "-";
+  const historyEn = ai.chronicHistoryEnglish || tr.history || state.patient.history || "None reported";
+  const painListEn = (ai.painPointsEnglish && ai.painPointsEnglish.length)
+    ? ai.painPointsEnglish
+    : (tr.painPoints && tr.painPoints.length ? tr.painPoints : state.painPoints);
+
+  sectionTitle("Patient Information");
+  writeLine(`Name: ${nameEn}`);
+  writeLine(`Age: ${state.patient.age}`);
+  writeLine(`Gender: ${state.patient.gender === "male" ? "Male" : "Female"}`);
+  writeLine(`City: ${cityEn}`);
+  writeLine(`Chronic conditions / medications: ${historyEn}`);
+
+  sectionTitle("Triage Result");
+  writeLine(`Anatomical system: ${SYSTEM_LABEL_EN[state.selectedSystem] || "Skeletal System"}`, { bold: true });
+  if (ai.affectedArea) writeLine(`Specific area affected (estimated): ${ai.affectedArea}`, { bold: true });
+  writeLine(`Severity: ${SEVERITY_LABEL_EN[ai.severity] || "Low"}`);
+  if (typeof ai.confidence === "number") writeLine(`Confidence: ${Math.round(ai.confidence * 100)}%`);
+  writeLine(`Possible conditions: ${(ai.possibleConditions || []).join(", ") || "-"}`);
+  if (ai.rareConditionConsidered) writeLine(`Rare condition considered: ${ai.rareConditionConsidered}`);
+  if (ai.redFlags && ai.redFlags.length) writeLine(`Red flags: ${ai.redFlags.join(", ")}`, { bold: true });
+  writeLine(`Imaging required: ${ai.needsImaging ? "Yes" + (ai.imagingType ? " - " + ai.imagingType : "") : "No"}`);
+  writeLine(`Lab tests required: ${ai.needsLabTests ? "Yes" + ((ai.recommendedTests && ai.recommendedTests.length) ? " - " + ai.recommendedTests.join(", ") : "") : "No"}`);
+
+  sectionTitle("Described Pain Location(s)");
+  if (painListEn.length) { painListEn.forEach(p => { writeLine(`- ${p}`); }); }
+  else { writeLine("- No pain location was described."); }
+  writeLine("Note: diagnosis was determined using both the verbal interview and the described pain location.", { size: 9 });
+
+  sectionTitle("Clinical Notes for Physician");
+  writeLine(ai.notes || "-");
+
+  if (state.uploadedImages.length) {
+    doc.addPage(); y = 20;
+    sectionTitle(`Attached Medical Images (${state.uploadedImages.length})`);
+    writeLine("These images were uploaded by the patient and have not been analyzed by AI.", { size: 9 });
+    y += 4;
+    state.uploadedImages.forEach((img, idx) => {
+      try {
+        const props = doc.getImageProperties(img.dataUrl);
+        const fmt = props.fileType || "JPEG";
+        const tw = maxWidth;
+        const th = Math.min((props.height * tw) / props.width, pageHeight - 50);
+        const fw = (th === pageHeight - 50) ? (props.width * th) / props.height : tw;
+        ensureSpace(th + 14);
+        doc.setFontSize(9); doc.setFont(undefined, "bold");
+        doc.text(`Image ${idx + 1}: ${img.name}`, marginLeft, y);
+        y += 5;
+        doc.addImage(img.dataUrl, fmt, marginLeft, y, fw, th);
+        y += th + 10;
+      } catch (e) { writeLine(`(Could not embed image: ${img.name})`); }
+    });
+  }
+
+  y += 6; ensureSpace(14);
+  doc.setDrawColor(220, 220, 220);
+  doc.line(marginLeft, y, marginLeft + maxWidth, y);
+  y += 6;
+  doc.setFontSize(8); doc.setTextColor(120, 120, 120);
+  doc.text("This is an automated preliminary triage report and does not replace professional medical consultation.", marginLeft, y, { maxWidth });
+  doc.setTextColor(0, 0, 0);
+
+  return doc;
+}
+
+function saveRecordToLocalStorage(pdfBase64) {
+  try {
+    const records = JSON.parse(localStorage.getItem("nabd_records") || "[]");
+    records.unshift({
+      id: Date.now(),
+      name: state.patient.name,
+      date: new Date().toISOString(),
+      system: state.selectedSystem,
+      severity: (state.aiSummary && state.aiSummary.severity) || "low",
+      pdfBase64: pdfBase64,
+    });
+    localStorage.setItem("nabd_records", JSON.stringify(records));
+  } catch (e) {
+    console.error("Could not save to localStorage:", e);
+    showToast("تعذّر حفظ التقرير في السجل المحلي (مساحة التخزين ممتلئة)", true);
+  }
+}
+
+document.getElementById("sendReportBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("sendReportBtn");
+  btn.disabled = true;
+  btn.setAttribute('aria-busy', 'true');
+  btn.textContent = "جاري إنشاء التقرير...";
+  announce("جاري إنشاء التقرير...");
+
+  try {
+    if (!state.translated) {
+      state.translated = await translateFieldsToEnglish();
+    }
+    const doc = generatePDF();
+    const pdfBase64 = doc.output("datauristring").split(",")[1];
+    saveRecordToLocalStorage(pdfBase64);
+    doc.save(`nabd-report-${Date.now()}.pdf`);
+    showToast("تم إنشاء التقرير وحفظه في السجل الطبي ✅");
+  } catch (err) {
+    console.error(err);
+    showToast("حدث خطأ أثناء إنشاء التقرير", true);
+  }
+
+  btn.disabled = false;
+  btn.removeAttribute('aria-busy');
+  btn.innerHTML = REPORT_BTN_HTML;
+});
+
+/* ==========================================================
+   GLOBAL KEYBOARD SHORTCUTS
+   ========================================================== */
+document.addEventListener("keydown", e => {
+  // Alt+M: toggle mic (voice mode only)
+  if (e.altKey && e.key.toLowerCase() === "m" && state.mode === "voice" && state.step === 2) {
+    e.preventDefault();
+    micBtn.click();
+  }
+  // Escape: stop recording or interrupt TTS
+  if (e.key === "Escape") {
+    if (ttsActive) { interruptSpeech(); return; }
+    if (isRecording) { stopRecording(); announce("تم إيقاف التسجيل"); }
+  }
+});
+</script>
+</body>
+</html>

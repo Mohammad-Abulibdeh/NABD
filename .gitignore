@@ -1,0 +1,14 @@
+# Secrets — keep your real API key local
+web/config.js
+.env
+
+# Original archives (same content as 3d-models/)
+_archives/
+
+# OS / editor junk
+desktop.ini
+Thumbs.db
+*.ico
+__pycache__/
+*.pyc
+.venv/

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نتائج الاستبيان – الأخطاء الطبية والذكاء الاصطناعي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: #F5F8FB;
+      color: #1E2A38;
+      direction: rtl;
+      padding: 24px 16px 60px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* header */
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+      padding: 32px 20px 20px;
+      background: linear-gradient(135deg, #2B7FBF 0%, #1A5F9A 100%);
+      border-radius: 24px;
+      color: white;
+      box-shadow: 0 6px 24px rgba(43,127,191,0.25);
+    }
+    .header h1 {
+      font-family: 'Cairo', sans-serif;
+      font-weight: 800;
+      font-size: clamp(24px, 4vw, 36px);
+      margin-bottom: 8px;
+    }
+    .header p {
+      opacity: 0.85;
+      font-size: 15px;
+    }
+
+    /* stats cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 18px 16px;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      border: 1px solid #E8EEF4;
+    }
+    .stat-number {
+      font-family: 'Cairo', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: #2B7FBF;
+    }
+    .stat-label {
+      font-size: 13px;
+      color: #5A6A7A;
+      margin-top: 4px;
+    }
+
+    /* chart grid */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .chart-card {
+      background: #FFFFFF;
+      border-radius: 20px;
+      padding: 20px 18px 18px;
+      box-shadow: 0 2px 16px rgba(43,127,191,0.06);
+      border: 1px solid #E8EEF4;
+      transition: 0.2s;
+    }
+    .chart-card:hover {
+      box-shadow: 0 8px 28px rgba(43,127,191,0.10);
+    }
+    .chart-card h3 {
+      font-family: 'Cairo', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #1A5F9A;
+      margin-bottom: 14px;
+      border-right: 4px solid #2B7FBF;
+      padding-right: 12px;
+    }
+    .chart-wrapper {
+      position: relative;
+      height: 200px;
+    }
+    .chart-wrapper.pie {
+      height: 200px;
+    }
+
+    /* table */
+    .table-wrap {
+      background: white;
+      border-radius: 20px;
+      border: 1px solid #E8EEF4;
+      padding: 8px 0;
+      overflow-x: auto;
+      margin-bottom: 24px;
+    }
+    .table-wrap h3 {
+      font-family: 'Cairo', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #1A5F9A;
+      padding: 16px 20px 4px;
+      border-right: 4px solid #2B7FBF;
+      margin-right: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th {
+      background: #F0F6FC;
+      color: #1A2A3A;
+      font-weight: 700;
+      padding: 12px 16px;
+      text-align: right;
+      white-space: nowrap;
+    }
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid #EEF3F8;
+      color: #1E2A38;
+    }
+    tr:last-child td { border-bottom: none; }
+
+    .badge {
+      background: #E8F4FD;
+      color: #1A5F9A;
+      font-size: 11px;
+      padding: 2px 10px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      font-size: 18px;
+      color: #5A6A7A;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 32px;
+      color: #8A9AA8;
+      font-size: 13px;
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>📊 نتائج الاستبيان</h1>
+    <p>الأخطاء الطبية ودور الذكاء الاصطناعي في تحسين التشخيص – تحليل إحصائي مباشر</p>
+  </div>
+
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card"><div class="stat-number" id="totalCount">0</div><div class="stat-label">إجمالي المشاركات</div></div>
+    <div class="stat-card"><div class="stat-number" id="wrongDxCount">0</div><div class="stat-label">أبلغوا عن خطأ تشخيصي</div></div>
+    <div class="stat-card"><div class="stat-number" id="trustAiAvg">-</div><div class="stat-label">متوسط الثقة بالذكاء الاصطناعي</div></div>
+    <div class="stat-card"><div class="stat-number" id="trustDoctorAvg">-</div><div class="stat-label">متوسط الثقة بالتشخيص الحالي</div></div>
+  </div>
+
+  <div class="charts-grid" id="chartsGrid">
+    <!-- سيتم حقن الرسوم البيانية عبر JS -->
+  </div>
+
+  <!-- جدول البيانات الخام -->
+  <div class="table-wrap" id="tableWrap">
+    <h3>📋 آخر الإجابات</h3>
+    <div style="padding: 8px 16px 4px; font-size:12px; color:#5A6A7A;">يظهر أحدث 20 مشاركة</div>
+    <table>
+      <thead><tr><th>#</th><th>العمر</th><th>الجنس</th><th>تشخيص خاطئ؟</th><th>معرفة بالذكاء الاصطناعي</th><th>الثقة بدون ذكاء</th><th>الثقة مع الذكاء</th><th>دور الذكاء مستقبلاً</th></tr></thead>
+      <tbody id="tableBody">
+        <tr><td colspan="8" style="text-align:center; color:#8A9AA8;">جاري تحميل البيانات...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">🔬 البيانات محدثة لحظياً من قاعدة البيانات • جميع الإجابات مجهولة المصدر</div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://xsnnkdkyggmyctlzlhxf.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhzbm5rZGt5Z2dteWN0bHpsaHhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMzE2OTIsImV4cCI6MjA5NzcwNzY5Mn0.OFwvhvxdeMiOWXfgnstySMuvd0Akafx6extfC8El25g';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+  // تخزين البيانات
+  let allData = [];
+  let charts = {};
+
+  // أسماء الحقول العربية للتجميع
+  const fieldLabels = {
+    age_group: 'الفئة العمرية',
+    gender: 'الجنس',
+    education: 'المستوى التعليمي',
+    health_status: 'الحالة الصحية',
+    doctor_visits: 'زيارات الطبيب',
+    wrong_diagnosis: 'تشخيص خاطئ؟',
+    error_location: 'مكان الخطأ',
+    ai_knowledge: 'المعرفة بالذكاء الاصطناعي',
+    ai_best_use: 'أفضل استخدام للذكاء',
+    ai_biggest_risk: 'أكبر خطر للذكاء',
+    ai_role_future: 'دور الذكاء مستقبلاً'
+  };
+
+  // دالة لإنشاء الرسوم البيانية
+  function renderCharts(data) {
+    const grid = document.getElementById('chartsGrid');
+    grid.innerHTML = '';
+
+    // 1. العمر
+    const ageMap = countBy(data, 'age_group');
+    grid.appendChild(createChartCard('الفئة العمرية', ageMap, 'bar'));
+
+    // 2. الجنس
+    const genderMap = countBy(data, 'gender');
+    grid.appendChild(createChartCard('الجنس', genderMap, 'pie'));
+
+    // 3. تشخيص خاطئ
+    const wrongMap = countBy(data, 'wrong_diagnosis');
+    grid.appendChild(createChartCard('هل تلقيت تشخيصاً خاطئاً؟', wrongMap, 'bar'));
+
+    // 4. المعرفة بالذكاء الاصطناعي
+    const aiKnowMap = countBy(data, 'ai_knowledge');
+    grid.appendChild(createChartCard('المعرفة بالذكاء الاصطناعي', aiKnowMap, 'bar'));
+
+    // 5. دور الذكاء مستقبلا
+    const roleMap = countBy(data, 'ai_role_future');
+    grid.appendChild(createChartCard('دور الذكاء الاصطناعي مستقبلاً', roleMap, 'pie'));
+
+    // 6. متوسط الثقة (bar show)
+    const trustAvg = getAvg(data, 'trust_with_ai');
+    const trustDocAvg = getAvg(data, 'trust_without_ai');
+    const trustCard = document.createElement('div');
+    trustCard.className = 'chart-card';
+    trustCard.innerHTML = `
+      <h3>متوسط الثقة (من 5)</h3>
+      <div style="display:flex; gap:20px; justify-content:center; padding:12px 0;">
+        <div><span style="color:#2B7FBF; font-weight:700; font-size:28px;">${trustDocAvg.toFixed(1)}</span><br><span style="font-size:12px; color:#5A6A7A;">بدون ذكاء</span></div>
+        <div><span style="color:#22A65E; font-weight:700; font-size:28px;">${trustAvg.toFixed(1)}</span><br><span style="font-size:12px; color:#5A6A7A;">مع الذكاء</span></div>
+      </div>
+      <div style="background:#E8EEF4; height:6px; border-radius:6px; overflow:hidden; display:flex;">
+        <div style="width:${(trustDocAvg/5)*100}%; background:#2B7FBF; height:6px;"></div>
+        <div style="width:${(trustAvg/5)*100}%; background:#22A65E; height:6px;"></div>
+      </div>
+    `;
+    grid.appendChild(trustCard);
+  }
+
+  // مساعد: عد التكرارات
+  function countBy(data, key) {
+    const map = {};
+    data.forEach(row => {
+      const val = row[key] || 'غير محدد';
+      map[val] = (map[val] || 0) + 1;
+    });
+    return map;
+  }
+
+  // مساعد: متوسط
+  function getAvg(data, key) {
+    const vals = data.map(r => Number(r[key])).filter(n => !isNaN(n) && n > 0);
+    if (vals.length === 0) return 0;
+    return vals.reduce((a,b) => a+b, 0) / vals.length;
+  }
+
+  // إنشاء بطاقة رسم بياني
+  function createChartCard(title, dataMap, type) {
+    const card = document.createElement('div');
+    card.className = 'chart-card';
+    const canvasId = 'chart-' + Math.random().toString(36).substr(2, 6);
+    card.innerHTML = `<h3>${title}</h3><div class="chart-wrapper ${type === 'pie' ? 'pie' : ''}"><canvas id="${canvasId}"></canvas></div>`;
+
+    // بعد إلحاق العنصر نرسم الرسم
+    setTimeout(() => {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      const labels = Object.keys(dataMap);
+      const values = Object.values(dataMap);
+      const colors = ['#2B7FBF','#5BA4D8','#8CC2E8','#A8D0E8','#1A5F9A','#3A8EC4','#6BAED6'];
+
+      let config = {
+        type: type === 'pie' ? 'pie' : 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: type === 'pie' ? colors.slice(0, labels.length) : '#2B7FBF',
+            borderColor: type === 'pie' ? '#fff' : '#1A5F9A',
+            borderWidth: 1,
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: type === 'pie', position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+          },
+          scales: type === 'pie' ? {} : {
+            y: { beginAtZero: true, grid: { color: '#E8EEF4' }, ticks: { stepSize: 1 } },
+            x: { grid: { display: false } }
+          }
+        }
+      };
+      if (type === 'bar') {
+        config.options.plugins.legend = { display: false };
+      }
+      new Chart(ctx, config);
+    }, 50);
+
+    return card;
+  }
+
+  // تحديث الإحصائيات والجدول
+  function updateStatsAndTable(data) {
+    document.getElementById('totalCount').textContent = data.length;
+
+    const wrongCount = data.filter(r => r.wrong_diagnosis && (r.wrong_diagnosis === 'yes_confirmed' || r.wrong_diagnosis === 'i_think')).length;
+    document.getElementById('wrongDxCount').textContent = wrongCount;
+
+    const trustAi = getAvg(data, 'trust_with_ai');
+    const trustDoc = getAvg(data, 'trust_without_ai');
+    document.getElementById('trustAiAvg').textContent = trustAi > 0 ? trustAi.toFixed(1) : '-';
+    document.getElementById('trustDoctorAvg').textContent = trustDoc > 0 ? trustDoc.toFixed(1) : '-';
+
+    // الجدول - آخر 20
+    const tbody = document.getElementById('tableBody');
+    const latest = data.slice(-20).reverse();
+    if (latest.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#8A9AA8;">لا توجد بيانات مسجلة بعد</td></tr>';
+      return;
+    }
+    tbody.innerHTML = latest.map((row, i) => `
+      <tr>
+        <td>${data.length - i}</td>
+        <td>${row.age_group || '—'}</td>
+        <td>${row.gender === 'male' ? 'ذكر' : row.gender === 'female' ? 'أنثى' : '—'}</td>
+        <td>${row.wrong_diagnosis ? (row.wrong_diagnosis === 'yes_confirmed' ? 'نعم مؤكد' : row.wrong_diagnosis === 'i_think' ? 'أعتقد' : row.wrong_diagnosis === 'no' ? 'لا' : 'لا أعرف') : '—'}</td>
+        <td>${row.ai_knowledge || '—'}</td>
+        <td>${row.trust_without_ai || '—'}</td>
+        <td>${row.trust_with_ai || '—'}</td>
+        <td>${row.ai_role_future || '—'}</td>
+      </tr>
+    `).join('');
+  }
+
+  // جلب البيانات من Supabase
+  async function fetchData() {
+    try {
+      const { data, error } = await sb.from('survey_responses').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      allData = data || [];
+      renderCharts(allData);
+      updateStatsAndTable(allData);
+    } catch (e) {
+      console.error('خطأ في جلب البيانات:', e);
+      document.getElementById('tableBody').innerHTML = '<tr><td colspan="8" style="text-align:center; color:#e53e3e;">⚠️ تعذر تحميل البيانات. تأكد من إعداد الجدول.</td></tr>';
+      // عرض رسوم بيانية فارغة
+      document.getElementById('chartsGrid').innerHTML = '<div class="chart-card" style="grid-column:1/-1; text-align:center; padding:40px; color:#5A6A7A;">⚠️ لا توجد بيانات متاحة</div>';
+    }
+  }
+
+  // تشغيل التحميل عند فتح الصفحة
+  window.addEventListener('DOMContentLoaded', fetchData);
+
+  // إعادة تحميل كل 30 ثانية
+  setInterval(fetchData, 30000);
+</script>
+
+</body>
+</html>
